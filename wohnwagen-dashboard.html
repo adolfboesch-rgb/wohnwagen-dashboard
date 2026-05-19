@@ -359,10 +359,8 @@ const AUTH  = 'MTBlYjk0dWlk3F27866A3E243F44467066199D14C9FDDC950479C48626129D18A
 const PROXY = 'https://solitary-haze-e0d5.adolf-boesch.workers.dev';
 const CLOUD = 'shelly-71-eu.shelly.cloud';
 
-// Geräte: H&T G3 (WiFi) + BLU HT (Bluetooth, via Cloud)
+// Geräte: BLU HT (Bluetooth, via Cloud)
 const DEVICES = {
-  innen:  { id:'54320457aee8',      localIp:'10.10.20.209', label:'Innenraum · Wohnwagen', icon:'🌡️', acc:'ab', tag:'H&T G3' },
-  vorbau: { id:'543204576ac4',      localIp:'10.10.20.76',  label:'Vorbau · Wohnwagen',   icon:'🏕️', acc:'ag', tag:'H&T G3' },
   // BLU HT Sensoren – über Cloud
   blu1:   { id:'XB137192906687768', localIp:null, label:'Raumtemperatur Vorbau',    icon:'❄️', acc:'ap', tag:'BLU HT' },
   blu2:   { id:'XB137192906397952', localIp:null, label:'Raumtemperatur Wohnwagen', icon:'🏠', acc:'ao', tag:'BLU HT' },
@@ -398,7 +396,7 @@ const WDESC={0:'Sonnig, klar',1:'Überwiegend klar',2:'Teilweise bewölkt',3:'Be
 // ══════════════════════════════════════════════════════════════════
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['innen','vorbau','blu1','blu2','aussen','wetter'];
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'2');
