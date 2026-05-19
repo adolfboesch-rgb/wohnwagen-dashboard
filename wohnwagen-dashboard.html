@@ -26,7 +26,7 @@ body {
 
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
-.content{position:relative;z-index:1}
+.content{position:relative;z-index:1;transition:transform 2s ease}
 
 /* ── HEADER ── */
 .header{
@@ -39,8 +39,8 @@ body {
 .logo-text{font-size:clamp(14px,3.5vw,20px);font-weight:800;line-height:1.1}
 .logo-text span{color:var(--ac)}
 .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-#clock{font-family:var(--mono);font-size:clamp(14px,3.5vw,20px);font-weight:700;color:var(--ac);letter-spacing:1px}
-#dateline{font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:1px;text-align:right}
+#clock{font-family:var(--mono);font-size:clamp(28px,5vw,52px);font-weight:700;color:var(--ac);letter-spacing:2px;text-shadow:0 0 15px rgba(56,189,248,.35)}
+#dateline{font-family:var(--mono);font-size:clamp(12px,2vw,20px);color:var(--mu);margin-top:3px;text-align:right}
 .conn-pill{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .cpl{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.25)}
 .cpc{background:rgba(56,189,248,.1);color:var(--ac);border:1px solid rgba(56,189,248,.2)}
@@ -132,8 +132,11 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* TABLET: 3 columns side by side */
 @media(min-width:768px){
-  .sensor-row{grid-template-columns:repeat(3,1fr)}
-  .grid{padding:16px}
+  .sensor-row{grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid{padding:24px;max-width:1600px;margin:auto}
+  .card{min-height:260px}
+  .mb{font-size:clamp(42px,6vw,72px)}
+  .wt{font-size:clamp(54px,8vw,90px)}
 }
 @media(min-width:1024px){
   .grid{max-width:1400px;margin:0 auto;padding:20px}
@@ -449,7 +452,7 @@ function newParticle(random=false){
   const W=canvas.width, H=canvas.height;
   if(wxMode==='rain'||wxMode==='thunder'){
     return{x:Math.random()*W*1.5-W*0.25, y:random?Math.random()*H:-10,
-      vy:12+Math.random()*8, vx:-1-Math.random()*2,
+      vy:7+Math.random()*5, vx:-1-Math.random()*2,
       len:15+Math.random()*20, alpha:0.3+Math.random()*0.4, w:1};
   }
   if(wxMode==='snow'){
@@ -493,7 +496,7 @@ function drawBG(){
   // Atmospheric glow
   if(wxMode==='sunny'){
     const rg = ctx.createRadialGradient(W*0.75,H*0.08,0,W*0.75,H*0.08,W*0.5);
-    rg.addColorStop(0,'rgba(255,200,80,.12)'); rg.addColorStop(1,'transparent');
+    rg.addColorStop(0,'rgba(255,220,120,.22)'); rg.addColorStop(1,'transparent');
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
   }
   if(wxMode==='thunder'){
@@ -565,7 +568,7 @@ function animate(){
   });
 
   // Lightning flash
-  if(wxMode==='thunder' && Math.random()<0.002){
+  if(wxMode==='thunder' && Math.random()<0.006){
     ctx.fillStyle='rgba(200,180,255,0.06)';
     ctx.fillRect(0,0,canvas.width,canvas.height);
   }
@@ -595,7 +598,13 @@ function tick(){
   document.getElementById('ss-date').textContent=ds;
   // Auto night mode
   const h=n.getHours();
-  if(h>=22||h<7) { if(brightness>60){ /* keep manual */ } }
+  if(h>=22 || h<7){
+    document.documentElement.style.setProperty('--brightness',0.72);
+    document.body.style.filter='saturate(.85)';
+  }else{
+    document.documentElement.style.setProperty('--brightness',brightness/100);
+    document.body.style.filter='saturate(1)';
+  }
   // Screensaver
   if(ssTimerMins>0 && !ssActive && Date.now()-lastActivity > ssTimerMins*60*1000){
     ssActive=true;
@@ -611,6 +620,14 @@ function tick(){
   }
 }
 setInterval(tick,1000); tick();
+
+// GLOBALER PIXEL-SHIFT BURN-IN SCHUTZ
+setInterval(()=>{
+  const x=Math.sin(Date.now()/90000)*4;
+  const y=Math.cos(Date.now()/120000)*3;
+  const content=document.querySelector('.content');
+  if(content && !ssActive) content.style.transform=`translate(${x}px,${y}px)`;
+},60000);
 
 function updateSSTemps(){
   const t=document.getElementById('ss-temps');
@@ -958,10 +975,25 @@ async function loadWeather(){
     const d=await r.json();
     currentWxCode=d.current.weather_code;
     setWeatherBG(currentWxCode, d.current.is_day===0);
+    localStorage.setItem('last_weather_cache', JSON.stringify(d));
     renderWeather(d);
   }catch(e){
     const bw=document.getElementById('body-weather');
-    if(bw) bw.innerHTML=`<div class="eb">⚠ Wetter: ${e.message}</div>`;
+    const cached=localStorage.getItem('last_weather_cache');
+    if(cached){
+      try{
+        const oldData=JSON.parse(cached);
+        renderWeather(oldData);
+        const bw2=document.getElementById('body-weather');
+        if(bw2){
+          bw2.innerHTML += `<div class="eb" style="margin-top:10px">⚠ Offline · Letzte Wetterdaten verwendet</div>`;
+        }
+      }catch(err){
+        if(bw) bw.innerHTML=`<div class="eb">⚠ Wetter Offline</div>`;
+      }
+    }else{
+      if(bw) bw.innerHTML=`<div class="eb">⚠ Wetter Offline</div>`;
+    }
   }
 }
 
@@ -1036,14 +1068,58 @@ async function refreshAll(){
   const sensorKeys=cardOrder.filter(k=>k!=='wetter');
   await Promise.allSettled(sensorKeys.map(loadSensor).concat([loadWeather()]));
   const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  window.lastRefreshTime=Date.now();
   document.getElementById('status-msg').innerHTML=`<span class="ok">✓</span> ${ts} · Auto alle ${refreshMins} Min`;
   btn.innerHTML='⟳ Aktualisieren'; btn.disabled=false;
 }
 
 function restartAutoRefresh(){
   clearInterval(window._ar);
-  window._ar=setInterval(refreshAll, refreshMins*60*1000);
+  window._ar=setInterval(async()=>{
+    try{ await refreshAll(); }
+    catch(e){ console.log('Refresh Fehler',e); }
+  }, refreshMins*60*1000);
 }
+
+
+
+// WAKE LOCK: Tablet bleibt wach
+let wakeLock = null;
+async function enableWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock aktiv');
+    }
+  }catch(err){ console.log('Wake Lock Fehler', err); }
+}
+window.addEventListener('load', enableWakeLock);
+document.addEventListener('visibilitychange', async()=>{
+  if(document.visibilityState === 'visible') await enableWakeLock();
+});
+
+// AUTO FULLSCREEN / KIOSK nach Antippen oder Startversuch
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  },1500);
+});
+document.addEventListener('click',()=>{
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+},{once:true});
+
+// AUTO RECOVERY: wenn das Tablet hängt, wird neu geladen
+setInterval(()=>{
+  const now=Date.now();
+  const lastRefresh=window.lastRefreshTime || now;
+  if(now - lastRefresh > 15*60*1000){
+    location.reload();
+  }
+},300000);
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
