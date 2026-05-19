@@ -251,35 +251,50 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
 
 
-/* Tablet-Optimierung: stündliche Vorschau deutlich grösser */
+/* FINALE TABLET-VERSION: Stunden gross, aber niedriger, damit 7-Tage sichtbar bleibt */
 @media(min-width:768px){
+  .wn{margin-bottom:8px}
+  .wi{font-size:clamp(40px,6vw,58px)}
+  .wt{font-size:clamp(40px,6vw,64px)}
+  .wd{font-size:11px;margin-top:2px}
+  .ws{gap:7px;margin-bottom:9px}
+  .wst{padding:7px 5px;border-radius:9px}
+  .wv{font-size:clamp(13px,1.6vw,17px)}
+  .wl{font-size:8px}
+  .sec-lbl{font-size:11px;margin-bottom:7px}
   .hourly{
-    gap:14px;
-    padding-bottom:14px;
-    margin-bottom:22px;
+    gap:12px;
+    padding-bottom:6px;
+    margin-bottom:10px;
     overflow-x:auto;
   }
   .hc{
     min-width:96px;
-    min-height:142px;
-    padding:16px 12px;
-    border-radius:18px;
+    min-height:112px;
+    padding:10px 10px;
+    border-radius:16px;
   }
-  .ht{font-size:13px;line-height:1.2}
-  .hi{font-size:34px;margin:10px 0 8px}
-  .hv{font-size:22px;line-height:1.15}
-  .hr{font-size:13px;margin-top:5px}
-  .sec-lbl{font-size:12px;margin-bottom:12px}
+  .ht{font-size:12px;line-height:1.15}
+  .hi{font-size:30px;margin:6px 0 4px}
+  .hv{font-size:20px;line-height:1.05}
+  .hr{font-size:12px;margin-top:2px}
+  .fc{gap:7px}
+  .fcd{padding:8px 4px;border-radius:10px}
+  .fdi{font-size:22px;margin:3px 0}
+  .fdh{font-size:13px}
+  .fdl{font-size:10px}
 }
 
-/* Extra grosse Ansicht für Tablet/Laptop im Querformat */
+/* Querformat/Tablet gross: Breite bleibt schön, Höhe bleibt kompakt */
 @media(min-width:1100px){
-  .hourly{gap:16px}
-  .hc{min-width:105px;min-height:152px;padding:17px 13px}
-  .ht{font-size:14px}
-  .hi{font-size:38px}
-  .hv{font-size:24px}
-  .hr{font-size:14px}
+  .hourly{gap:13px;margin-bottom:10px}
+  .hc{min-width:102px;min-height:116px;padding:10px 11px}
+  .ht{font-size:13px}
+  .hi{font-size:32px}
+  .hv{font-size:21px}
+  .hr{font-size:12px}
+  .fc{gap:8px}
+  .fcd{padding:9px 5px}
 }
 
 /* ── STATUS BAR ── */
@@ -317,6 +332,33 @@ html, body, .content { background-color:#060d1a !important; }
 ::-webkit-scrollbar-track { background:#060d1a !important; }
 ::-webkit-scrollbar-thumb { background:#060d1a !important; border:0 !important; }
 ::-webkit-scrollbar-corner { background:#060d1a !important; }
+
+
+/* FINALE TABLET-FIT: Wetter + 7 Tage sollen im Vollbild sichtbar bleiben */
+@media(min-width:900px) and (max-height:900px){
+  .header{padding:8px 14px 7px}
+  .logo-text{font-size:clamp(18px,2.2vw,26px)}
+  #clock{font-size:clamp(34px,5vw,58px)}
+  #dateline{font-size:clamp(13px,1.5vw,20px)}
+  .loc-bar{padding:7px 12px 6px}
+  .grid{gap:8px;padding:10px 18px 12px}
+  .sensor-row{gap:12px}
+  .card{padding:12px 14px;border-radius:18px}
+  .sensor-row .card{min-height:205px}
+  .ch{margin-bottom:10px}
+  .mb{font-size:clamp(36px,4.8vw,58px)}
+  .br{margin-top:8px;padding-top:7px}
+  .wn{gap:12px;margin-bottom:6px}
+  .ws{margin-bottom:7px}
+  .hourly{margin-bottom:8px}
+}
+
+/* Scrollbalken im Vollbild optisch schwarz/unauffällig */
+html, body { background:#060d1a !important; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width:10px !important; background:#060d1a !important; }
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background:#060d1a !important; }
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background:#060d1a !important; border:0 !important; }
+
 </style>
 </head>
 <body>
