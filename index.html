@@ -24,6 +24,15 @@ body {
   overflow-x:hidden;position:relative;background:#060d1a;
 }
 
+/* Scrollbalken ausblenden – Seite bleibt trotzdem scrollbar */
+html,body{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
+*::-webkit-scrollbar{width:0;height:0}
+*{scrollbar-width:none}
+
+/* Im echten Vollbild den rechten Balken sicher verstecken */
+html:fullscreen,body:fullscreen{overflow:hidden}
+
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 .content{position:relative;z-index:1;transition:transform 1.2s ease}
@@ -199,17 +208,17 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .wv{font-family:var(--mono);font-size:clamp(12px,2.5vw,15px);font-weight:700;color:var(--ac)}
 .wl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
 .sec-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:var(--mono)}
-.hourly{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;
-  scrollbar-width:thin;scrollbar-color:var(--b3) transparent}
-.hourly::-webkit-scrollbar{height:3px}
-.hourly::-webkit-scrollbar-thumb{background:var(--b3);border-radius:2px}
-.hc{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:9px;padding:7px 7px;text-align:center;min-width:48px}
+.hourly{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;
+  scrollbar-width:none;scrollbar-color:transparent transparent}
+.hourly::-webkit-scrollbar{height:0;display:none}
+.hourly::-webkit-scrollbar-thumb{background:transparent;border-radius:2px}
+.hc{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:12px;padding:10px 9px;text-align:center;min-width:62px}
 .hc.now{border-color:var(--green);background:rgba(52,211,153,.08)}
-.ht{font-family:var(--mono);font-size:9px;color:var(--mu)}
+.ht{font-family:var(--mono);font-size:10px;color:var(--mu)}
 .hc.now .ht{color:var(--green)}
-.hi{font-size:17px;margin:3px 0}
-.hv{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
-.hr{font-size:9px;color:var(--rain);font-family:var(--mono);margin-top:1px}
+.hi{font-size:22px;margin:5px 0}
+.hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--tx)}
+.hr{font-size:10px;color:var(--rain);font-family:var(--mono);margin-top:2px}
 .fc{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 @media(max-width:450px){.fc{grid-template-columns:repeat(4,1fr)}.fcd:nth-child(n+5){display:none}}
 .fcd{background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
@@ -220,6 +229,23 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fdh{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
 .fdl{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:1px}
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
+
+
+/* Tablet-Optimierung: grössere stündliche Vorschau, ohne sichtbaren Scrollbalken */
+@media(min-width:768px){
+  .hourly{gap:10px;padding-bottom:10px;margin-bottom:18px}
+  .hc{min-width:76px;padding:12px 10px;border-radius:14px}
+  .ht{font-size:11px}
+  .hi{font-size:26px}
+  .hv{font-size:16px}
+  .hr{font-size:11px}
+  .sec-lbl{font-size:10px;margin-bottom:9px}
+}
+
+/* Fullscreen/Kiosk: keine sichtbaren Browser-Scrollleisten im Dashboard */
+@media(min-width:900px){
+  body{overflow-y:auto}
+}
 
 /* ── STATUS BAR ── */
 .sb{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;
