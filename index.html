@@ -804,6 +804,7 @@ const DEFAULT_LOCS = [
 ];
 
 const COLOR_PRESETS = [
+  // ── Sehr dunkel (OLED/Tablet-optimiert) ──
   {name:'OLED Schwarz',hex:'#000000'}, {name:'Nacht Blau',hex:'#060d1a'},
   {name:'Samsung Dunkel',hex:'#08111f'}, {name:'Anthrazit',hex:'#111111'},
   {name:'Petrol',hex:'#0b2b2e'}, {name:'Ozean',hex:'#08283d'},
@@ -816,6 +817,24 @@ const COLOR_PRESETS = [
   {name:'Rot Nacht',hex:'#260708'}, {name:'Grün OLED',hex:'#00120a'},
   {name:'Blau OLED',hex:'#000b18'}, {name:'Lila OLED',hex:'#0b0018'},
   {name:'Orange OLED',hex:'#180900'}, {name:'Neutral Dunkel',hex:'#08090b'},
+  // ── Mittel (angenehm gedimmt) ──
+  {name:'Slate Blau',hex:'#1e3a5f'}, {name:'Smaragd',hex:'#134e3a'},
+  {name:'Dunkelrot',hex:'#4a1020'}, {name:'Aubergine',hex:'#2e1a47'},
+  {name:'Dunkel Orange',hex:'#4a2000'}, {name:'Kakao',hex:'#3b2010'},
+  {name:'Tanne',hex:'#0d3828'}, {name:'Tintenblau',hex:'#1a2a4a'},
+  {name:'Dunkel Teal',hex:'#0d3535'}, {name:'Granat',hex:'#3d0c1a'},
+  {name:'Indigo',hex:'#1e1b4b'}, {name:'Olivgrün',hex:'#2d3318'},
+  {name:'Stahlgrau',hex:'#1c2333'}, {name:'Mahagoni',hex:'#3c1810'},
+  {name:'Dunkles Aqua',hex:'#0a3040'}, {name:'Violett Mittel',hex:'#2d1060'},
+  // ── Heller (für helle Umgebungen) ──
+  {name:'Himmelblau',hex:'#1e6fa8'}, {name:'Grasgrün',hex:'#1a7a40'},
+  {name:'Weinrot',hex:'#8b1a2f'}, {name:'Schiefer',hex:'#3a4a5c'},
+  {name:'Morgenrot',hex:'#a03020'}, {name:'Lila Hell',hex:'#5c2d8a'},
+  {name:'Ozean Hell',hex:'#0e6e8a'}, {name:'Khaki',hex:'#6b5a2a'},
+  {name:'Graphit',hex:'#2d3436'}, {name:'Terrakotta',hex:'#8c3a1e'},
+  {name:'Schiefergrau',hex:'#445566'}, {name:'Moos',hex:'#3a5c2a'},
+  {name:'Burgund',hex:'#722040'}, {name:'Blaugrau',hex:'#4a6080'},
+  {name:'Fichte',hex:'#2a5040'}, {name:'Rotbraun',hex:'#7a3020'},
 ];
 
 const WDAYS =['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
@@ -1142,7 +1161,7 @@ function applyTheme(){
   const hex=colorToHex(bgColor);
   const rgb=hexToRgb(hex);
   const hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
-  bgColor={...bgColor,hex,h:hsl.h,s:hsl.s,l:Math.max(3,Math.min(18,hsl.l))};
+  bgColor={...bgColor,hex,h:hsl.h,s:hsl.s,l:hsl.l};
   setDocumentBg(hex);
   document.documentElement.style.setProperty('--brightness',brightness/100);
   syncColorInputs();
@@ -1151,7 +1170,7 @@ function setHexColor(hex){
   const good=normalizeHex(hex);
   if(!good) return;
   const rgb=hexToRgb(good), hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
-  bgColor={name:'Eigene Farbe',hex:good,h:hsl.h,s:hsl.s,l:Math.max(3,Math.min(18,hsl.l))};
+  bgColor={name:'Eigene Farbe',hex:good,h:hsl.h,s:hsl.s,l:hsl.l};
   saveColor(); applyTheme(); renderColorGrid(); renderFavorites();
 }
 function setRgbColor(){
@@ -1197,13 +1216,22 @@ function closeSPBtn(){ document.getElementById('sp-overlay').classList.remove('o
 function renderColorGrid(){
   const grid=document.getElementById('color-grid'); if(!grid) return;
   const current=colorToHex(bgColor);
-  grid.innerHTML=COLOR_PRESETS.map((p,i)=>{
-    const hex=colorToHex(p);
-    const active=current===hex;
-    return`<div class="cpx ${active?'active':''}"
-      style="background:${hex}"
-      onclick="selectColor(${i})" title="${p.name} · ${hex}"></div>`;
-  }).join('');
+  const groups=[
+    {label:'Sehr dunkel (OLED/Tablet)',count:24},
+    {label:'Mittel (gedimmt)',count:16},
+    {label:'Heller (Tag-Modus)',count:16},
+  ];
+  let html='', idx=0;
+  groups.forEach(g=>{
+    html+=`<div style="width:100%;font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin:8px 0 4px;padding-top:4px;border-top:1px solid var(--b2)">${g.label}</div>`;
+    for(let n=0;n<g.count&&idx<COLOR_PRESETS.length;n++,idx++){
+      const p=COLOR_PRESETS[idx];
+      const hex=colorToHex(p);
+      const active=current===hex;
+      html+=`<div class="cpx ${active?'active':''}" style="background:${hex}" onclick="selectColor(${idx})" title="${p.name} · ${hex}"></div>`;
+    }
+  });
+  grid.innerHTML=html;
 }
 function selectColor(i){
   const p=COLOR_PRESETS[i];
