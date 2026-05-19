@@ -68,8 +68,8 @@ html:fullscreen,body:fullscreen{
 .logo-text{font-size:clamp(14px,3.5vw,20px);font-weight:800;line-height:1.1}
 .logo-text span{color:var(--ac)}
 .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-#clock{font-family:var(--mono);font-size:clamp(28px,5vw,52px);font-weight:700;color:var(--ac);letter-spacing:2px;text-shadow:0 0 15px rgba(56,189,248,.35)}
-#dateline{font-family:var(--mono);font-size:clamp(12px,2vw,20px);color:var(--mu);margin-top:3px;text-align:right}
+#clock{font-family:var(--mono);font-size:clamp(28px,5vw,52px);font-weight:700;color:var(--ac);letter-spacing:2px;text-shadow:0 0 15px rgba(56,189,248,.35),0 2px 6px rgba(0,0,0,.5)}
+#dateline{font-family:var(--mono);font-size:clamp(12px,2vw,20px);color:var(--tx);opacity:0.75;margin-top:3px;text-align:right;text-shadow:0 1px 4px rgba(0,0,0,.6),0 0 12px rgba(0,0,0,.4)}
 .conn-pill{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .cpl{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.25)}
 .cpc{background:rgba(56,189,248,.1);color:var(--ac);border:1px solid rgba(56,189,248,.2)}
@@ -1146,7 +1146,13 @@ function setDocumentBg(hex){
   document.body.style.setProperty('background',''+hex,'important');
   document.documentElement.style.background=hex;
   document.documentElement.style.setProperty('background',''+hex,'important');
-  // Sofortiger Canvas-Redraw mit neuer Farbe
+  // Datum-Farbe je nach Helligkeit anpassen
+  const dl=document.getElementById('dateline');
+  if(dl){
+    if(hsl.l>35){ dl.style.color='rgba(0,0,0,0.75)'; }
+    else if(hsl.l>20){ dl.style.color='rgba(200,220,255,0.85)'; }
+    else { dl.style.color=''; } // CSS default (var(--tx))
+  }
   if(typeof drawBG==='function'){ drawBG(); }
 }
 function syncColorInputs(){
