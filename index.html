@@ -470,6 +470,180 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:#060d1
   .fcd{min-height:60px!important;padding:5px 2px!important}
 }
 
+
+/* =========================================================
+   ULTRA-FLACH TABLET FIX
+   Temperaturkarten nochmals deutlich niedriger
+   damit Wetter, 7-Tage Ansicht und Statuszeile Platz haben.
+   ========================================================= */
+
+@media (min-width:768px){
+  .sensor-row{
+    gap:8px !important;
+  }
+
+  .sensor-row .card{
+    height:96px !important;
+    min-height:96px !important;
+    max-height:96px !important;
+    padding:7px 10px !important;
+    border-radius:14px !important;
+    overflow:hidden !important;
+  }
+
+  .sensor-row .ch{
+    margin-bottom:3px !important;
+    gap:5px !important;
+  }
+
+  .sensor-row .ct{
+    font-size:8px !important;
+    letter-spacing:1.6px !important;
+  }
+
+  .sensor-row .tag{
+    font-size:7px !important;
+    padding:1px 4px !important;
+  }
+
+  .sensor-row .sv{
+    gap:6px !important;
+    align-items:flex-end !important;
+  }
+
+  .sensor-row .mb{
+    font-size:clamp(22px,2.8vw,34px) !important;
+    line-height:.82 !important;
+  }
+
+  .sensor-row .mb .u{
+    font-size:.32em !important;
+  }
+
+  .sensor-row .ml{
+    font-size:6px !important;
+    margin-top:1px !important;
+    letter-spacing:.8px !important;
+  }
+
+  .sensor-row .dv{
+    height:22px !important;
+  }
+
+  .sensor-row .br{
+    margin-top:4px !important;
+    padding-top:3px !important;
+  }
+
+  .sensor-row .bb{
+    height:3px !important;
+  }
+
+  .sensor-row .bp{
+    font-size:8px !important;
+  }
+
+  .sensor-row .ls{
+    font-size:6px !important;
+    margin-top:1px !important;
+  }
+
+  .grid{
+    gap:6px !important;
+    padding-top:8px !important;
+  }
+}
+
+@media (min-width:900px) and (max-height:900px){
+  .sensor-row .card{
+    height:88px !important;
+    min-height:88px !important;
+    max-height:88px !important;
+    padding:6px 10px !important;
+  }
+
+  .sensor-row .mb{
+    font-size:clamp(21px,2.5vw,32px) !important;
+  }
+
+  .sensor-row .br{
+    margin-top:3px !important;
+    padding-top:2px !important;
+  }
+
+  #card-wetter.card{
+    padding:8px 10px !important;
+  }
+
+  .wn{
+    margin-bottom:4px !important;
+  }
+
+  .wi{
+    font-size:clamp(30px,3.8vw,44px) !important;
+  }
+
+  .wt{
+    font-size:clamp(30px,4vw,48px) !important;
+  }
+
+  .ws{
+    margin-bottom:5px !important;
+  }
+
+  .wst{
+    padding:4px 3px !important;
+  }
+
+  .hourly{
+    margin-bottom:4px !important;
+  }
+
+  .hc{
+    min-width:74px !important;
+    min-height:76px !important;
+    padding:5px 6px !important;
+  }
+
+  .hi{
+    font-size:20px !important;
+    margin:2px 0 !important;
+  }
+
+  .hv{
+    font-size:13px !important;
+  }
+
+  .fc .fcd{
+    min-height:55px !important;
+    padding:4px 2px !important;
+  }
+}
+
+html,body{
+  background:#060d1a !important;
+  overflow-x:hidden !important;
+  scrollbar-color:#060d1a #060d1a !important;
+}
+
+::-webkit-scrollbar{
+  width:8px !important;
+  background:#060d1a !important;
+}
+
+::-webkit-scrollbar-track{
+  background:#060d1a !important;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#060d1a !important;
+  border:0 !important;
+}
+
+::-webkit-scrollbar-corner{
+  background:#060d1a !important;
+}
+
 </style>
 </head>
 <body>
