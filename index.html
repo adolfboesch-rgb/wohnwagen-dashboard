@@ -24,14 +24,34 @@ body {
   overflow-x:hidden;position:relative;background:#060d1a;
 }
 
-/* Scrollbalken ausblenden – Seite bleibt trotzdem scrollbar */
-html,body{scrollbar-width:none;-ms-overflow-style:none}
-html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
-*::-webkit-scrollbar{width:0;height:0}
-*{scrollbar-width:none}
+/* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
+html,body{
+  scrollbar-width:thin;
+  scrollbar-color:#060d1a #060d1a;
+  background:#060d1a;
+}
+html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{
+  width:14px;
+  height:0;
+  background:#060d1a;
+}
+html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,*::-webkit-scrollbar-track{
+  background:#060d1a;
+}
+html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,*::-webkit-scrollbar-thumb{
+  background:#060d1a;
+  border:0;
+}
+html::-webkit-scrollbar-corner,body::-webkit-scrollbar-corner,*::-webkit-scrollbar-corner{
+  background:#060d1a;
+}
 
-/* Im echten Vollbild den rechten Balken sicher verstecken */
-html:fullscreen,body:fullscreen{overflow:hidden}
+/* Im echten Browser-Fullscreen keine helle Scrollbar */
+html:fullscreen,body:fullscreen{
+  overflow-y:auto;
+  background:#060d1a;
+  scrollbar-color:#060d1a #060d1a;
+}
 
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
@@ -231,20 +251,35 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
 
 
-/* Tablet-Optimierung: grössere stündliche Vorschau, ohne sichtbaren Scrollbalken */
+/* Tablet-Optimierung: stündliche Vorschau deutlich grösser */
 @media(min-width:768px){
-  .hourly{gap:10px;padding-bottom:10px;margin-bottom:18px}
-  .hc{min-width:76px;padding:12px 10px;border-radius:14px}
-  .ht{font-size:11px}
-  .hi{font-size:26px}
-  .hv{font-size:16px}
-  .hr{font-size:11px}
-  .sec-lbl{font-size:10px;margin-bottom:9px}
+  .hourly{
+    gap:14px;
+    padding-bottom:14px;
+    margin-bottom:22px;
+    overflow-x:auto;
+  }
+  .hc{
+    min-width:96px;
+    min-height:142px;
+    padding:16px 12px;
+    border-radius:18px;
+  }
+  .ht{font-size:13px;line-height:1.2}
+  .hi{font-size:34px;margin:10px 0 8px}
+  .hv{font-size:22px;line-height:1.15}
+  .hr{font-size:13px;margin-top:5px}
+  .sec-lbl{font-size:12px;margin-bottom:12px}
 }
 
-/* Fullscreen/Kiosk: keine sichtbaren Browser-Scrollleisten im Dashboard */
-@media(min-width:900px){
-  body{overflow-y:auto}
+/* Extra grosse Ansicht für Tablet/Laptop im Querformat */
+@media(min-width:1100px){
+  .hourly{gap:16px}
+  .hc{min-width:105px;min-height:152px;padding:17px 13px}
+  .ht{font-size:14px}
+  .hi{font-size:38px}
+  .hv{font-size:24px}
+  .hr{font-size:14px}
 }
 
 /* ── STATUS BAR ── */
@@ -274,6 +309,14 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 @keyframes sp{to{transform:rotate(360deg)}}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .fi{animation:fi .35s ease forwards}
+
+
+/* FINAL FIX: rechter Balken immer dunkel statt grau */
+html, body, .content { background-color:#060d1a !important; }
+::-webkit-scrollbar { width:14px !important; background:#060d1a !important; }
+::-webkit-scrollbar-track { background:#060d1a !important; }
+::-webkit-scrollbar-thumb { background:#060d1a !important; border:0 !important; }
+::-webkit-scrollbar-corner { background:#060d1a !important; }
 </style>
 </head>
 <body>
