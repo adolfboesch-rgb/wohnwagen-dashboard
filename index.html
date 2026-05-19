@@ -303,13 +303,13 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
     </div>
 
     <div class="sp-sec">
-      <div class="sp-lbl">🌙 Bildschirmschoner</div>
+      <div class="sp-lbl">🛡️ Burn-In Schutz</div>
       <div class="sl-row">
         <span class="sl-ico">⏰</span>
         <input type="range" id="ss-sl" min="0" max="30" value="5" oninput="setSSTimer(this.value)">
         <span class="sl-val" id="ss-val">5 Min</span>
       </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">0 = deaktiviert</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">Bild bleibt sichtbar. 0 = kein schwarzer Screensaver.</div>
     </div>
 
     <div class="sp-sec">
@@ -403,7 +403,7 @@ let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'2');
-let ssTimerMins  = parseInt(localStorage.getItem('ww_ss_v5')||'5');
+let ssTimerMins  = parseInt(localStorage.getItem('ww_ss_v5')||'0');
 const lastKnown  = JSON.parse(localStorage.getItem('ww_last_sensor_cache_v6')||'{}');
 let currentWxCode = 0;
 
@@ -606,29 +606,30 @@ function tick(){
     document.documentElement.style.setProperty('--brightness', brightness/100);
     document.body.style.filter='saturate(1)';
   }
-  // Screensaver
-  if(ssTimerMins>0 && !ssActive && Date.now()-lastActivity > ssTimerMins*60*1000){
-    ssActive=true;
-    document.getElementById('screensaver').classList.add('active');
-    updateSSTemps();
-  }
-  // Pixel shift (burn-in protection) for screensaver
-  if(ssActive){
-    const ss=document.getElementById('screensaver');
-    const x=(Math.sin(Date.now()/10000)*30).toFixed(0);
-    const y=(Math.cos(Date.now()/13000)*20).toFixed(0);
-    ss.style.transform=`translate(${x}px,${y}px)`;
-  }
+  // Screensaver ist deaktiviert: Wetter/Sensoren bleiben immer sichtbar.
+  // Burn-In Schutz erfolgt über sanften Pixel-Shift der ganzen Anzeige.
+  if(ssActive) dismissScreensaver();
 }
 setInterval(tick,1000); tick();
 
-// Permanenter Pixel-Shift Burn-In Schutz: Das ganze Bild bewegt sich minimal.
-setInterval(()=>{
-  const x=Math.sin(Date.now()/90000)*4;
-  const y=Math.cos(Date.now()/120000)*3;
+// Permanenter Burn-In Schutz: Die komplette Anzeige bleibt sichtbar,
+// bewegt sich aber alle 45 Sekunden minimal. Keine Wetteranzeige verschwindet.
+function applyBurnInShift(){
+  const t=Date.now();
+  const x=Math.sin(t/70000)*7;
+  const y=Math.cos(t/95000)*5;
+  const s=1 + Math.sin(t/180000)*0.004;
   const c=document.querySelector('.content');
-  if(c && !ssActive) c.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
-},60000);
+  if(c) c.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${s.toFixed(4)})`;
+
+  // kleine Zusatzbewegung nur bei Uhr/Wetter-Icon, damit keine Pixel stundenlang gleich bleiben
+  const clock=document.getElementById('clock');
+  if(clock) clock.style.transform=`translate(${(-x/3).toFixed(1)}px,${(y/4).toFixed(1)}px)`;
+  const wi=document.querySelector('.wi');
+  if(wi) wi.style.transform=`translate(${(x/2).toFixed(1)}px,${(-y/2).toFixed(1)}px)`;
+}
+setInterval(applyBurnInShift,45000);
+applyBurnInShift();
 
 function updateSSTemps(){
   const t=document.getElementById('ss-temps');
