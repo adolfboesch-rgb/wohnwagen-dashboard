@@ -78,6 +78,19 @@ html:fullscreen,body:fullscreen{
 .hdr-btn{background:rgba(255,255,255,.08);border:1px solid var(--b2);color:var(--mu);
   font-size:15px;padding:5px 10px;border-radius:8px;cursor:pointer;transition:all .2s;line-height:1}
 .hdr-btn:hover{border-color:var(--ac);color:var(--ac)}
+#rot-btn.active{color:var(--ac);border-color:var(--ac);background:rgba(56,189,248,.15)}
+
+/* Rotierte Ansicht — Hochformat-Gerät zeigt Querformat-Layout */
+html.rotated{
+  transform:rotate(-90deg);
+  transform-origin:left top;
+  width:100vh;
+  height:100vw;
+  overflow-x:hidden;
+  position:absolute;
+  top:100%;
+  left:0;
+}
 
 /* ── SETTINGS PANEL ── */
 .sp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
@@ -799,6 +812,7 @@ html,body{
         <div id="dateline"></div>
       </div>
       <button class="hdr-btn fs-btn" onclick="toggleFS()" title="Vollbild">⛶</button>
+      <button class="hdr-btn" id="rot-btn" onclick="toggleRotate()" title="Ansicht drehen">🔄</button>
       <button class="hdr-btn" onclick="openSP()" title="Einstellungen">⚙️</button>
     </div>
   </div>
@@ -1980,6 +1994,53 @@ function toggleFS(){
     document.exitFullscreen().catch(()=>{});
   }
 }
+
+// ══════════════════════════════════════════════════════════════════
+// ANSICHT ROTATION (Handy → Tablet-Querformat)
+// ══════════════════════════════════════════════════════════════════
+let rotateOverride = localStorage.getItem('ww_rotate') || 'auto'; // 'auto'|'landscape'|'portrait'
+
+function applyRotation(){
+  const isPhone = window.innerWidth < window.innerHeight; // Hochformat = Handy
+  const btn = document.getElementById('rot-btn');
+  let shouldRotate = false;
+
+  if(rotateOverride === 'landscape'){
+    shouldRotate = isPhone; // Handy im Hochformat → drehen
+  } else if(rotateOverride === 'portrait'){
+    shouldRotate = false;   // nie drehen
+  } else {
+    // Auto: drehen wenn Handy (schmal) und kein Tablet (>768px)
+    shouldRotate = window.innerWidth < 600;
+  }
+
+  if(shouldRotate){
+    document.documentElement.classList.add('rotated');
+    if(btn){ btn.classList.add('active'); btn.title='Rotation aus'; }
+  } else {
+    document.documentElement.classList.remove('rotated');
+    if(btn){ btn.classList.remove('active'); btn.title='Ansicht drehen'; }
+  }
+}
+
+function toggleRotate(){
+  // Manuell durchschalten: auto → landscape → portrait → auto
+  if(rotateOverride==='auto')      rotateOverride='landscape';
+  else if(rotateOverride==='landscape') rotateOverride='portrait';
+  else                             rotateOverride='auto';
+  localStorage.setItem('ww_rotate', rotateOverride);
+  applyRotation();
+
+  // Tooltip aktualisieren
+  const btn=document.getElementById('rot-btn');
+  const labels={'auto':'🔄 Auto','landscape':'↔️ Quer','portrait':'↕️ Hoch'};
+  if(btn) btn.title=labels[rotateOverride];
+}
+
+// Beim Start und bei Orientierungswechsel
+applyRotation();
+window.addEventListener('resize', applyRotation);
+screen.orientation?.addEventListener('change', applyRotation);
 
 // ══════════════════════════════════════════════════════════════════
 // AUTO REFRESH
