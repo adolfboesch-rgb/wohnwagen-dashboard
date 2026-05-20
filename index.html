@@ -942,10 +942,12 @@ resizeCanvas();
 function setWeatherBG(code, isNight){
   const h = new Date().getHours();
   isNight = isNight || h >= 21 || h < 6;
-  wxMode = isNight ? 'night' : code<=1 ? 'sunny' : code<=3 ? 'cloudy' :
+  // Wetter-Modus bestimmen (unabhängig von Nacht)
+  const dayMode = code<=1 ? 'sunny' : code<=3 ? 'cloudy' :
     code<=48 ? 'fog' : code<=67 ? 'rain' : code<=77 ? 'snow' : code<=82 ? 'rain' : 'thunder';
+  // Nachts: nur bei klarem Himmel Sterne zeigen, sonst Wetter-Modus beibehalten
+  wxMode = isNight && dayMode==='sunny' ? 'night' : dayMode;
   initParticles();
-  // Mini-Canvas in der Wetterkarte ebenfalls aktualisieren
   setTimeout(()=>setMiniMode(wxMode), 100);
 }
 
@@ -1634,7 +1636,7 @@ function renderChips(){
   const ll=document.getElementById('logo-loc');if(ll) ll.textContent=activeLoc.name;
   const wt=document.getElementById('w-title');if(wt) wt.textContent=`Wetter · ${activeLoc.name}`;
 }
-function selectLoc(i){ activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather(); }
+function selectLoc(i){ activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather(); setDocumentBg(colorToHex(bgColor)); }
 function delLoc(e,i){
   e.stopPropagation(); if(savedLocs.length<=1) return;
   const wasActive=savedLocs[i].name===activeLoc.name;
@@ -1970,7 +1972,7 @@ function renderWeather(d){
     </div>
     <div class="ws fi">
       <div class="wst"><div class="wv">${Math.round(c.relative_humidity_2m)}%</div><div class="wl">Luftfeuchte</div></div>
-      <div class="wst"><div class="wv">${Math.round(c.wind_speed_10m)}<small> km/h</small></div><div class="wl">Wind ${windDeg!==null?windDir(windDeg):''}</div></div>
+      <div class="wst"><div class="wv">${Math.round(c.wind_speed_10m)}<small> km/h</small>${windDeg!==null?` <span style="display:inline-block;transform:rotate(${windDeg}deg);font-size:.7em;opacity:.8">↑</span><small style="font-size:.55em;opacity:.8"> ${['N','NO','O','SO','S','SW','W','NW'][Math.round(windDeg/45)%8]}</small>`:''}</div><div class="wl">Wind</div></div>
       <div class="wst"><div class="wv">${Math.round(c.wind_gusts_10m)}<small> km/h</small></div><div class="wl">Böen</div></div>
       <div class="wst"><div class="wv">${Math.round(c.surface_pressure)}<small> hPa</small></div><div class="wl">Luftdruck</div></div>
       <div class="wst"><div class="wv">${c.precipitation.toFixed(1)}<small> mm</small></div><div class="wl">Niederschlag</div></div>
