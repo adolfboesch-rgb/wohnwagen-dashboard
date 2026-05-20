@@ -80,6 +80,17 @@ html:fullscreen,body:fullscreen{
 .hdr-btn:hover{border-color:var(--ac);color:var(--ac)}
 #rot-btn.active{color:var(--ac);border-color:var(--ac);background:rgba(56,189,248,.15)}
 
+/* Smart Plug Settings */
+.plug-tab{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--b2);background:rgba(255,255,255,.05);color:var(--mu);transition:all .2s}
+.plug-tab.active{background:rgba(56,189,248,.15);border-color:var(--ac);color:var(--ac)}
+.plug-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.plug-lbl{font-family:var(--mono);font-size:10px;color:var(--mu);min-width:80px}
+.plug-inp{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--b2);border-radius:6px;
+  padding:5px 8px;color:var(--tx);font-family:var(--mono);font-size:11px;outline:none;
+  transition:border-color .2s}
+.plug-inp:focus{border-color:var(--ac)}
+
 /* Rotierte Ansicht — Hochformat-Gerät zeigt Querformat-Layout */
 html.rotated{
   transform:rotate(-90deg);
@@ -779,6 +790,57 @@ html,body{
           border-radius:6px;padding:4px 8px;color:var(--tx);font-family:var(--mono);font-size:11px;outline:none"
           onchange="setCustomInterval(this.value)">
       </div>
+    </div>
+
+    <div class="sp-sec">
+      <div class="sp-lbl">🔌 Akku-Ladesteuerung (Shelly / myStrom)</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-bottom:10px">
+        Steckdose EIN wenn Akku &lt; Schwelle · AUS wenn Akku &gt; 80%
+      </div>
+
+      <!-- Gerät wählen -->
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="plug-tab active" id="tab-shelly" onclick="switchPlugTab('shelly')">Shelly</button>
+        <button class="plug-tab" id="tab-mystrom" onclick="switchPlugTab('mystrom')">myStrom</button>
+      </div>
+
+      <!-- Shelly -->
+      <div id="plug-shelly">
+        <div class="plug-row"><label class="plug-lbl">Auth Key</label>
+          <input class="plug-inp" id="shelly-key" type="password" placeholder="Shelly Cloud Auth Key"
+            oninput="savePlug()"></div>
+        <div class="plug-row"><label class="plug-lbl">Device ID</label>
+          <input class="plug-inp" id="shelly-dev" type="text" placeholder="z.B. shellyplug-s-XXXXXX"
+            oninput="savePlug()"></div>
+        <div class="plug-row"><label class="plug-lbl">Server</label>
+          <input class="plug-inp" id="shelly-srv" type="text" placeholder="shelly-103eu.shelly.cloud"
+            oninput="savePlug()"></div>
+      </div>
+
+      <!-- myStrom -->
+      <div id="plug-mystrom" style="display:none">
+        <div class="plug-row"><label class="plug-lbl">API Token</label>
+          <input class="plug-inp" id="myst-token" type="password" placeholder="myStrom API Token"
+            oninput="savePlug()"></div>
+        <div class="plug-row"><label class="plug-lbl">Device MAC</label>
+          <input class="plug-inp" id="myst-mac" type="text" placeholder="z.B. 5CCF7FXXXXXX"
+            oninput="savePlug()"></div>
+      </div>
+
+      <!-- Schwelle + Toggle -->
+      <div class="plug-row" style="margin-top:10px">
+        <label class="plug-lbl">Lade-Schwelle</label>
+        <input class="plug-inp" id="plug-thr" type="number" min="5" max="50" value="25"
+          style="width:60px" oninput="savePlug()"> <span style="font-family:var(--mono);font-size:10px;color:var(--mu)">%</span>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--mu);display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="plug-on" onchange="savePlug()"
+            style="width:16px;height:16px;accent-color:var(--ac);cursor:pointer">
+          Ladesteuerung aktiv
+        </label>
+      </div>
+      <div id="plug-status" style="font-family:var(--mono);font-size:10px;margin-top:8px;color:var(--mu)">—</div>
     </div>
 
     <div class="sp-sec">
@@ -1482,6 +1544,7 @@ function openSP(){
   const hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);
   bgColor={...bgColor,hex,h:hsl.h,s:hsl.s,l:hsl.l};
   renderColorGrid(); renderFavorites(); renderIntervalBtns(); renderOrderList();
+  loadPlugUI();
   document.getElementById('bright-sl').value=brightness;
   document.getElementById('bright-val').textContent=brightness+'%';
   const abCb=document.getElementById('auto-bright-cb');
@@ -2046,7 +2109,101 @@ window.addEventListener('resize', applyRotation);
 screen.orientation?.addEventListener('change', applyRotation);
 
 // ══════════════════════════════════════════════════════════════════
-// GERÄTE-AKKU (Battery API)
+// SMART PLUG LADESTEUERUNG (Shelly / myStrom Cloud)
+// ══════════════════════════════════════════════════════════════════
+let plugCfg = JSON.parse(localStorage.getItem('ww_plug_v1')||'{}');
+let plugLastState = null; // 'on'|'off'
+
+function savePlug(){
+  plugCfg = {
+    type:     document.getElementById('tab-shelly')?.classList.contains('active')?'shelly':'mystrom',
+    shellyKey: document.getElementById('shelly-key')?.value||'',
+    shellyDev: document.getElementById('shelly-dev')?.value||'',
+    shellySrv: document.getElementById('shelly-srv')?.value||'shelly-103eu.shelly.cloud',
+    mystToken: document.getElementById('myst-token')?.value||'',
+    mystMac:   document.getElementById('myst-mac')?.value||'',
+    threshold: parseInt(document.getElementById('plug-thr')?.value||'25'),
+    enabled:   document.getElementById('plug-on')?.checked||false,
+  };
+  localStorage.setItem('ww_plug_v1', JSON.stringify(plugCfg));
+}
+
+function loadPlugUI(){
+  if(!plugCfg.type) return;
+  switchPlugTab(plugCfg.type);
+  const si=v=>document.getElementById(v);
+  if(si('shelly-key')) si('shelly-key').value=plugCfg.shellyKey||'';
+  if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'';
+  if(si('shelly-srv')) si('shelly-srv').value=plugCfg.shellySrv||'shelly-103eu.shelly.cloud';
+  if(si('myst-token')) si('myst-token').value=plugCfg.mystToken||'';
+  if(si('myst-mac'))   si('myst-mac').value=plugCfg.mystMac||'';
+  if(si('plug-thr'))   si('plug-thr').value=plugCfg.threshold||25;
+  if(si('plug-on'))    si('plug-on').checked=plugCfg.enabled||false;
+}
+
+function switchPlugTab(t){
+  document.getElementById('tab-shelly')?.classList.toggle('active', t==='shelly');
+  document.getElementById('tab-mystrom')?.classList.toggle('active', t==='mystrom');
+  document.getElementById('plug-shelly').style.display = t==='shelly'?'':'none';
+  document.getElementById('plug-mystrom').style.display= t==='mystrom'?'':'none';
+  if(plugCfg) { plugCfg.type=t; localStorage.setItem('ww_plug_v1',JSON.stringify(plugCfg)); }
+}
+
+function setPlugStatus(msg, ok){
+  const el=document.getElementById('plug-status');
+  if(el){ el.textContent=msg; el.style.color=ok===true?'var(--green)':ok===false?'var(--red)':'var(--mu)'; }
+}
+
+async function controlPlug(turnOn){
+  if(!plugCfg.enabled) return;
+  const want = turnOn ? 'on' : 'off';
+  if(plugLastState === want) return; // kein unnötiger API-Call
+
+  setPlugStatus(`Steckdose wird ${turnOn?'eingeschaltet':'ausgeschaltet'}…`, null);
+
+  try {
+    if(plugCfg.type==='shelly'){
+      // Shelly Cloud API
+      const srv = plugCfg.shellySrv || 'shelly-103eu.shelly.cloud';
+      const url = `https://${srv}/device/relay/control`;
+      const body = new URLSearchParams({
+        auth_key: plugCfg.shellyKey,
+        id:       plugCfg.shellyDev,
+        channel:  '0',
+        turn:     want,
+      });
+      const r = await fetch(url, {method:'POST', body});
+      const j = await r.json();
+      if(j.isok){
+        plugLastState = want;
+        setPlugStatus(`✅ Shelly ${turnOn?'EIN':'AUS'} (${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})})`, true);
+      } else {
+        setPlugStatus(`❌ Shelly Fehler: ${j.errors?.join(', ')||'unbekannt'}`, false);
+      }
+    } else {
+      // myStrom Cloud API
+      const url = `https://mystrom.ch/api/device/switch?authToken=${plugCfg.mystToken}&mac=${plugCfg.mystMac}&state=${turnOn?1:0}`;
+      const r = await fetch(url);
+      const j = await r.json();
+      if(j.status==='ok'||r.ok){
+        plugLastState = want;
+        setPlugStatus(`✅ myStrom ${turnOn?'EIN':'AUS'} (${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})})`, true);
+      } else {
+        setPlugStatus(`❌ myStrom Fehler: ${JSON.stringify(j)}`, false);
+      }
+    }
+  } catch(e){
+    setPlugStatus(`❌ Verbindungsfehler: ${e.message}`, false);
+  }
+}
+
+function checkPlugBattery(pct, charging){
+  if(!plugCfg.enabled) return;
+  const thr = plugCfg.threshold || 25;
+  if(charging) return; // Wenn bereits geladen wird, nichts tun
+  if(pct <= thr)   controlPlug(true);   // unter Schwelle → EIN
+  else if(pct > 80) controlPlug(false); // über 80% → AUS
+}
 // ══════════════════════════════════════════════════════════════════
 function updateDevBat(bat){
   const el=document.getElementById('dev-bat');
@@ -2060,6 +2217,8 @@ function updateDevBat(bat){
   el.style.borderColor=pct<20?'rgba(239,68,68,.4)':pct<40?'rgba(251,191,36,.3)':'var(--b2)';
   el.textContent=`${icon} ${pct}%${charging?' ⚡':''}`;
   el.title=`Gerät: ${pct}% ${charging?'(lädt)':''}`;
+  // Steckdose steuern
+  checkPlugBattery(pct, charging);
 }
 
 if('getBattery' in navigator){
