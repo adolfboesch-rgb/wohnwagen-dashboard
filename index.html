@@ -55,6 +55,7 @@ html:fullscreen,body:fullscreen{
 
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+#wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
 .content{position:relative;z-index:1;transition:transform 1.2s ease}
 
 /* ── HEADER ── */
@@ -219,6 +220,32 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .bf.mid{background:var(--yel)}.bf.low{background:var(--red)}
 .bp{font-family:var(--mono);font-size:10px;font-weight:700;min-width:30px;text-align:right}
 .bp.low{color:var(--red)}.bp.mid{color:var(--yel)}.bp.ok{color:var(--green)}
+
+/* Batterie-Warnung Overlay */
+.bat-warn{
+  position:absolute;top:8px;right:8px;
+  background:rgba(239,68,68,.15);
+  border:1px solid rgba(239,68,68,.5);
+  border-radius:10px;
+  padding:3px 8px 3px 6px;
+  display:flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:#f87171;
+  animation:bat-pulse 2s ease-in-out infinite;
+  z-index:5;pointer-events:none;
+}
+.bat-warn .bw-icon{font-size:14px;animation:bat-shake 2s ease-in-out infinite;}
+@keyframes bat-pulse{
+  0%,100%{background:rgba(239,68,68,.12);box-shadow:none;}
+  50%{background:rgba(239,68,68,.28);box-shadow:0 0 10px rgba(239,68,68,.3);}
+}
+@keyframes bat-shake{
+  0%,100%{transform:rotate(0deg);}
+  20%{transform:rotate(-12deg);}
+  40%{transform:rotate(12deg);}
+  60%{transform:rotate(-8deg);}
+  80%{transform:rotate(8deg);}
+}
 .ls{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:4px;text-align:right}
 .eb{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18);border-radius:8px;
   padding:8px 10px;font-family:var(--mono);font-size:10px;color:var(--red);line-height:1.5}
@@ -336,7 +363,13 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fi{animation:fi .35s ease forwards}
 
 
-/* Scrollbalken immer in Hintergrundfarbe */
+/* Sonnenauf/-untergang Zeile */
+.sun-row{gap:0;margin:6px 0 8px;background:rgba(255,255,255,.04);border-radius:12px;padding:8px 12px;align-items:center}
+.sun-item{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.sun-icon{font-size:20px;line-height:1}
+.sun-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--warm);letter-spacing:1px}
+.sun-lbl{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px}
+.sun-sep{width:1px;height:36px;background:var(--b2);margin:0 12px}
 ::-webkit-scrollbar { width:14px !important; background:var(--bg-hex,#060d1a); }
 ::-webkit-scrollbar-track { background:var(--bg-hex,#060d1a); }
 ::-webkit-scrollbar-thumb { background:var(--bg-hex,#060d1a); border:0 !important; }
@@ -713,6 +746,14 @@ html,body{
         <span class="sl-ico">🌕</span>
         <span class="sl-val" id="bright-val">100%</span>
       </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px">
+        <label style="font-family:var(--mono);font-size:10px;color:var(--mu);display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="auto-bright-cb" onchange="toggleAutoBright(this.checked)"
+            style="width:16px;height:16px;accent-color:var(--ac);cursor:pointer">
+          🕐 Auto-Helligkeit nach Uhrzeit<br>
+          <span style="font-size:9px;color:var(--mu);margin-left:24px">06-09h: aufhellen · 09-20h: 100% · 20-22h: dimmen · Nacht: 20%</span>
+        </label>
+      </div>
     </div>
 
     <div class="sp-sec">
@@ -890,14 +931,17 @@ function setWeatherBG(code, isNight){
   wxMode = isNight ? 'night' : code<=1 ? 'sunny' : code<=3 ? 'cloudy' :
     code<=48 ? 'fog' : code<=67 ? 'rain' : code<=77 ? 'snow' : code<=82 ? 'rain' : 'thunder';
   initParticles();
+  // Mini-Canvas in der Wetterkarte ebenfalls aktualisieren
+  setTimeout(()=>setMiniMode(wxMode), 100);
 }
 
 function initParticles(){
   particles = [];
-  const n = wxMode==='rain'||wxMode==='thunder' ? 120 :
-            wxMode==='snow' ? 80 :
-            wxMode==='cloudy'||wxMode==='fog' ? 12 :
-            wxMode==='sunny' ? 6 : wxMode==='night' ? 60 : 0;
+  const n = wxMode==='rain'||wxMode==='thunder' ? 200 :
+            wxMode==='snow' ? 150 :
+            wxMode==='cloudy' ? 18 :
+            wxMode==='fog' ? 25 :
+            wxMode==='sunny' ? 10 : wxMode==='night' ? 120 : 0;
   for(let i=0;i<n;i++) particles.push(newParticle(true));
 }
 
@@ -905,28 +949,33 @@ function newParticle(random=false){
   const W=canvas.width, H=canvas.height;
   if(wxMode==='rain'||wxMode==='thunder'){
     return{x:Math.random()*W*1.5-W*0.25, y:random?Math.random()*H:-10,
-      vy:7+Math.random()*5, vx:-1-Math.random()*2,
-      len:15+Math.random()*20, alpha:0.3+Math.random()*0.4, w:1};
+      vy:10+Math.random()*8, vx:-2-Math.random()*3,
+      len:20+Math.random()*30, alpha:0.5+Math.random()*0.4, w:1.5+Math.random()*1};
   }
   if(wxMode==='snow'){
     return{x:Math.random()*W, y:random?Math.random()*H:-10,
-      vy:0.8+Math.random()*1.5, vx:(Math.random()-.5)*0.8,
-      r:1.5+Math.random()*2.5, alpha:0.5+Math.random()*0.5,
-      drift:Math.random()*Math.PI*2, driftSpeed:0.02+Math.random()*0.02};
+      vy:1+Math.random()*2, vx:(Math.random()-.5)*1,
+      r:2+Math.random()*4, alpha:0.7+Math.random()*0.3,
+      drift:Math.random()*Math.PI*2, driftSpeed:0.02+Math.random()*0.03};
   }
-  if(wxMode==='cloudy'||wxMode==='fog'){
-    return{x:random?Math.random()*W:-200, y:50+Math.random()*(H*0.5),
-      vx:0.15+Math.random()*0.25, w:200+Math.random()*300, h:60+Math.random()*80,
-      alpha:(wxMode==='fog'?0.06:0.04)+Math.random()*0.04};
+  if(wxMode==='cloudy'){
+    return{x:random?Math.random()*W:-300, y:30+Math.random()*(H*0.45),
+      vx:0.2+Math.random()*0.3, w:250+Math.random()*400, h:80+Math.random()*120,
+      alpha:0.12+Math.random()*0.1};
+  }
+  if(wxMode==='fog'){
+    return{x:random?Math.random()*W:-300, y:Math.random()*H,
+      vx:0.1+Math.random()*0.2, w:300+Math.random()*500, h:100+Math.random()*200,
+      alpha:0.08+Math.random()*0.07};
   }
   if(wxMode==='sunny'){
-    return{x:random?Math.random()*W:W/2, y:random?Math.random()*100:0,
-      r:80+Math.random()*120, alpha:0.02+Math.random()*0.02,
+    return{x:random?Math.random()*W:W/2, y:random?Math.random()*120:0,
+      r:100+Math.random()*150, alpha:0.06+Math.random()*0.05,
       phase:Math.random()*Math.PI*2, speed:0.003+Math.random()*0.005};
   }
   if(wxMode==='night'){
-    return{x:Math.random()*W, y:Math.random()*H*0.7,
-      r:0.5+Math.random()*1.5, alpha:0.3+Math.random()*0.7,
+    return{x:Math.random()*W, y:Math.random()*H*0.75,
+      r:0.5+Math.random()*2, alpha:0.4+Math.random()*0.6,
       twinkle:Math.random()*Math.PI*2, twSpeed:0.02+Math.random()*0.04};
   }
   return null;
@@ -934,32 +983,61 @@ function newParticle(random=false){
 
 function drawBG(){
   const W=canvas.width, H=canvas.height;
-  // Base gradient
-  const grad = ctx.createLinearGradient(0,0,0,H);
   const bgHex=colorToHex(bgColor);
   const rgb=hexToRgb(bgHex);
-  const topBoost = wxMode==='sunny' ? 22 : wxMode==='fog' ? 18 : wxMode==='night' ? 4 : 10;
+
+  // Wetter-Farbtönung auf den Hintergrund legen
+  const wxTint = {
+    sunny:  [255,200, 60, 0.18],
+    rain:   [ 40, 80,140, 0.22],
+    thunder:[ 80, 40,180, 0.25],
+    snow:   [180,210,255, 0.18],
+    cloudy: [ 80,100,130, 0.16],
+    fog:    [150,160,170, 0.20],
+    night:  [ 10, 20, 60, 0.25],
+    clear:  [  0,  0,  0, 0],
+  }[wxMode] || [0,0,0,0];
+
+  const topBoost = wxMode==='sunny' ? 25 : wxMode==='fog' ? 18 : wxMode==='night' ? 4 : 12;
   const top=`rgba(${Math.min(255,rgb.r+topBoost)},${Math.min(255,rgb.g+topBoost)},${Math.min(255,rgb.b+topBoost)},.96)`;
-  const bottom=`rgba(${Math.max(0,Math.round(rgb.r*.45))},${Math.max(0,Math.round(rgb.g*.45))},${Math.max(0,Math.round(rgb.b*.45))},.99)`;
+  const bottom=`rgba(${Math.max(0,Math.round(rgb.r*.4))},${Math.max(0,Math.round(rgb.g*.4))},${Math.max(0,Math.round(rgb.b*.4))},.99)`;
+
+  const grad = ctx.createLinearGradient(0,0,0,H);
   grad.addColorStop(0,top);
   grad.addColorStop(1,bottom);
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,W,H);
 
-  // Atmospheric glow
+  // Wetter-Farbtönung drüberlegen
+  if(wxTint[3]>0){
+    ctx.fillStyle=`rgba(${wxTint[0]},${wxTint[1]},${wxTint[2]},${wxTint[3]})`;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // Atmosphärischer Glow
   if(wxMode==='sunny'){
-    const rg = ctx.createRadialGradient(W*0.75,H*0.08,0,W*0.75,H*0.08,W*0.5);
-    rg.addColorStop(0,'rgba(255,220,120,.22)'); rg.addColorStop(1,'transparent');
+    const rg = ctx.createRadialGradient(W*0.75,H*0.08,0,W*0.75,H*0.08,W*0.6);
+    rg.addColorStop(0,'rgba(255,220,80,.35)'); rg.addColorStop(1,'transparent');
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
   }
   if(wxMode==='thunder'){
-    const rg = ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,W*0.6);
-    rg.addColorStop(0,'rgba(120,80,200,.12)'); rg.addColorStop(1,'transparent');
+    const rg = ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,W*0.7);
+    rg.addColorStop(0,'rgba(140,80,240,.25)'); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+  }
+  if(wxMode==='rain'){
+    const rg = ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,W*0.8);
+    rg.addColorStop(0,'rgba(60,100,180,.20)'); rg.addColorStop(1,'transparent');
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
   }
   if(wxMode==='night'){
-    const rg = ctx.createRadialGradient(W*0.8,H*0.05,0,W*0.8,H*0.05,W*0.3);
-    rg.addColorStop(0,'rgba(180,180,255,.06)'); rg.addColorStop(1,'transparent');
+    const rg = ctx.createRadialGradient(W*0.8,H*0.05,0,W*0.8,H*0.05,W*0.35);
+    rg.addColorStop(0,'rgba(180,180,255,.10)'); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+  }
+  if(wxMode==='snow'){
+    const rg = ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,W*0.7);
+    rg.addColorStop(0,'rgba(200,220,255,.15)'); rg.addColorStop(1,'transparent');
     ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
   }
 }
@@ -974,11 +1052,13 @@ function animate(){
     if(!p) return;
     if(wxMode==='rain'||wxMode==='thunder'){
       ctx.save();
-      ctx.strokeStyle=`rgba(125,211,252,${p.alpha})`;
+      ctx.strokeStyle=`rgba(140,200,255,${p.alpha})`;
       ctx.lineWidth=p.w;
+      ctx.shadowColor='rgba(100,180,255,0.3)';
+      ctx.shadowBlur=2;
       ctx.beginPath();
       ctx.moveTo(p.x,p.y);
-      ctx.lineTo(p.x+p.vx*2,p.y+p.len);
+      ctx.lineTo(p.x+p.vx*3,p.y+p.len);
       ctx.stroke();
       ctx.restore();
       p.x+=p.vx; p.y+=p.vy;
@@ -995,7 +1075,8 @@ function animate(){
       p.x+=p.vx;
       ctx.save();
       const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.w/2);
-      grd.addColorStop(0,`rgba(150,170,200,${p.alpha})`);
+      grd.addColorStop(0,`rgba(160,180,210,${p.alpha})`);
+      grd.addColorStop(0.5,`rgba(130,155,190,${p.alpha*0.6})`);
       grd.addColorStop(1,'transparent');
       ctx.fillStyle=grd;
       ctx.beginPath();
@@ -1007,7 +1088,8 @@ function animate(){
       p.phase+=p.speed;
       const a=p.alpha*(0.7+0.3*Math.sin(p.phase));
       const rg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
-      rg.addColorStop(0,`rgba(255,200,60,${a})`);
+      rg.addColorStop(0,`rgba(255,210,80,${a})`);
+      rg.addColorStop(0.5,`rgba(255,180,40,${a*0.4})`);
       rg.addColorStop(1,'transparent');
       ctx.fillStyle=rg; ctx.fillRect(0,0,canvas.width,canvas.height);
     } else if(wxMode==='night'){
@@ -1021,12 +1103,162 @@ function animate(){
   });
 
   // Lightning flash
-  if(wxMode==='thunder' && Math.random()<0.006){
-    ctx.fillStyle='rgba(200,180,255,0.06)';
+  if(wxMode==='thunder' && Math.random()<0.008){
+    ctx.fillStyle='rgba(220,200,255,0.12)';
     ctx.fillRect(0,0,canvas.width,canvas.height);
+    setTimeout(()=>{
+      ctx.fillStyle='rgba(220,200,255,0.08)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+    },60);
   }
 }
 animate();
+
+// ══════════════════════════════════════════════════════════════════
+// AUTO-HELLIGKEIT nach Uhrzeit
+// ══════════════════════════════════════════════════════════════════
+function autoBrightness(){
+  if(!localStorage.getItem('ww_auto_bright')) return; // nur wenn aktiviert
+  const h=new Date().getHours();
+  let target;
+  if(h>=6 && h<9)       target=Math.round(40+(h-6)*20);   // 6-9h: 40→100%
+  else if(h>=9 && h<20) target=100;                         // 9-20h: volle Helligkeit
+  else if(h>=20&&h<22)  target=Math.round(100-(h-20)*30);  // 20-22h: 100→40%
+  else if(h>=22||h<6)   target=20;                          // 22-6h: Nacht 20%
+  if(target!==undefined && target!==brightness){
+    brightness=target;
+    saveBright();
+    document.documentElement.style.setProperty('--brightness', brightness/100);
+  }
+}
+// Alle 5 Minuten prüfen
+setInterval(autoBrightness, 5*60*1000);
+autoBrightness(); // sofort beim Start
+// ══════════════════════════════════════════════════════════════════
+let miniFrame, miniParticles=[], miniMode='clear';
+let miniCanvas=null, miniCtx=null;
+
+function initMiniCanvas(){
+  miniCanvas=document.getElementById('wx-mini');
+  if(!miniCanvas) return false;
+  miniCtx=miniCanvas.getContext('2d');
+  const card=document.getElementById('card-wetter');
+  if(card){
+    miniCanvas.width=card.offsetWidth;
+    miniCanvas.height=card.offsetHeight;
+  }
+  return true;
+}
+
+function setMiniMode(mode){
+  miniMode=mode;
+  if(!initMiniCanvas()) return;
+  miniParticles=[];
+  const W=miniCanvas.width, H=miniCanvas.height;
+  const counts={rain:80, thunder:80, snow:60, cloudy:6, fog:8, sunny:5, night:40, clear:0};
+  const n=counts[mode]||0;
+  for(let i=0;i<n;i++) miniParticles.push(newMiniParticle(W,H,true));
+  cancelAnimationFrame(miniFrame);
+  if(n>0) animateMini();
+}
+
+function newMiniParticle(W,H,random=false){
+  if(miniMode==='rain'||miniMode==='thunder')
+    return{x:Math.random()*W*1.3-W*0.15, y:random?Math.random()*H:-5,
+      vy:8+Math.random()*6, vx:-1.5-Math.random()*2,
+      len:12+Math.random()*18, alpha:0.45+Math.random()*0.4, w:1+Math.random()*0.8};
+  if(miniMode==='snow')
+    return{x:Math.random()*W, y:random?Math.random()*H:-5,
+      vy:0.8+Math.random()*1.5, vx:(Math.random()-.5)*0.8,
+      r:1.5+Math.random()*3, alpha:0.6+Math.random()*0.4,
+      drift:Math.random()*Math.PI*2, ds:0.02+Math.random()*0.03};
+  if(miniMode==='cloudy')
+    return{x:random?Math.random()*W:-120, y:10+Math.random()*(H*0.3),
+      vx:0.2+Math.random()*0.25, w:80+Math.random()*100, h:28+Math.random()*28,
+      alpha:0.10+Math.random()*0.07};
+  if(miniMode==='fog')
+    return{x:random?Math.random()*W:-200, y:Math.random()*H*0.5,
+      vx:0.1+Math.random()*0.15, w:160+Math.random()*200, h:45+Math.random()*55,
+      alpha:0.07+Math.random()*0.05};
+  if(miniMode==='sunny')
+    return{x:W*0.85+Math.random()*40, y:H*0.08+Math.random()*30,
+      r:60+Math.random()*80, alpha:0.07+Math.random()*0.05,
+      phase:Math.random()*Math.PI*2, speed:0.004+Math.random()*0.004};
+  if(miniMode==='night')
+    return{x:Math.random()*W, y:Math.random()*H*0.6,
+      r:0.5+Math.random()*1.5, alpha:0.3+Math.random()*0.6,
+      tw:Math.random()*Math.PI*2, ts:0.02+Math.random()*0.04};
+  return null;
+}
+
+function animateMini(){
+  miniFrame=requestAnimationFrame(animateMini);
+  if(!miniCanvas||!miniCtx) return;
+  const W=miniCanvas.width, H=miniCanvas.height;
+  miniCtx.clearRect(0,0,W,H);
+
+  miniParticles.forEach((p,i)=>{
+    if(!p) return;
+    if(miniMode==='rain'||miniMode==='thunder'){
+      miniCtx.save();
+      miniCtx.strokeStyle=`rgba(140,200,255,${p.alpha})`;
+      miniCtx.lineWidth=p.w;
+      miniCtx.shadowColor='rgba(100,180,255,0.25)';
+      miniCtx.shadowBlur=2;
+      miniCtx.beginPath();
+      miniCtx.moveTo(p.x,p.y);
+      miniCtx.lineTo(p.x+p.vx*2.5,p.y+p.len);
+      miniCtx.stroke();
+      miniCtx.restore();
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.y>H+20) miniParticles[i]=newMiniParticle(W,H);
+    } else if(miniMode==='snow'){
+      p.drift+=p.ds;
+      p.x+=Math.sin(p.drift)*0.5+p.vx; p.y+=p.vy;
+      miniCtx.beginPath();
+      miniCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      miniCtx.fillStyle=`rgba(210,230,255,${p.alpha})`;
+      miniCtx.fill();
+      if(p.y>H+10) miniParticles[i]=newMiniParticle(W,H);
+    } else if(miniMode==='cloudy'||miniMode==='fog'){
+      p.x+=p.vx;
+      miniCtx.save();
+      miniCtx.globalAlpha=p.alpha;
+      const cx=p.x, cy=p.y, r=p.h/2;
+      miniCtx.fillStyle='rgba(200,215,235,1)';
+      miniCtx.beginPath();
+      miniCtx.arc(cx,         cy,         r*1.0, 0,Math.PI*2);
+      miniCtx.arc(cx+r*1.1,   cy+r*0.2,   r*0.75,0,Math.PI*2);
+      miniCtx.arc(cx-r*0.9,   cy+r*0.2,   r*0.65,0,Math.PI*2);
+      miniCtx.arc(cx+r*0.35,  cy-r*0.5,   r*0.65,0,Math.PI*2);
+      miniCtx.fill();
+      miniCtx.restore();
+      if(p.x-p.w/2>W+50) miniParticles[i]=newMiniParticle(W,H);
+    } else if(miniMode==='sunny'){
+      p.phase+=p.speed;
+      const a=p.alpha*(0.7+0.3*Math.sin(p.phase));
+      const rg=miniCtx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      rg.addColorStop(0,`rgba(255,215,80,${a})`);
+      rg.addColorStop(0.5,`rgba(255,180,40,${a*0.4})`);
+      rg.addColorStop(1,'transparent');
+      miniCtx.fillStyle=rg;
+      miniCtx.fillRect(0,0,W,H);
+    } else if(miniMode==='night'){
+      p.tw+=p.ts;
+      const a=p.alpha*(0.5+0.5*Math.sin(p.tw));
+      miniCtx.beginPath();
+      miniCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      miniCtx.fillStyle=`rgba(220,220,255,${a})`;
+      miniCtx.fill();
+    }
+  });
+
+  // Mini-Blitz
+  if(miniMode==='thunder'&&Math.random()<0.007){
+    miniCtx.fillStyle='rgba(220,200,255,0.15)';
+    miniCtx.fillRect(0,0,W,H);
+  }
+}
 
 // ══════════════════════════════════════════════════════════════════
 // CLOCK & SCREENSAVER
@@ -1218,6 +1450,8 @@ function openSP(){
   renderColorGrid(); renderFavorites(); renderIntervalBtns(); renderOrderList();
   document.getElementById('bright-sl').value=brightness;
   document.getElementById('bright-val').textContent=brightness+'%';
+  const abCb=document.getElementById('auto-bright-cb');
+  if(abCb) abCb.checked=!!localStorage.getItem('ww_auto_bright');
   document.getElementById('hue-sl').value=hsl.h||220;
   document.getElementById('ss-sl').value=ssTimerMins;
   document.getElementById('ss-val').textContent=ssTimerMins===0?'Aus':ssTimerMins+' Min';
@@ -1339,7 +1573,8 @@ function renderSensorCard(key){
 }
 
 function renderWeatherCard(){
-  return`<div class="card" id="card-wetter">
+  return`<div class="card" id="card-wetter" style="position:relative;overflow:hidden">
+    <canvas id="wx-mini"></canvas>
     <div class="cal as"></div>
     <div class="ch">
       <div style="font-size:14px">🌍</div>
@@ -1525,7 +1760,23 @@ function renderSensor(key,p){
     document.getElementById('bat-'+key).innerHTML=`<div class="br fi"><span style="font-size:11px">🔋</span>
       <div class="bb"><div class="bf ${cls}" style="width:${pct}%"></div></div>
       <span class="bp ${cls||'ok'}">${pct}%</span></div>`;
-  } else document.getElementById('bat-'+key).innerHTML='';
+    // Batterie-Warnung auf der Karte
+    const card=document.getElementById('card-'+key);
+    if(card){
+      card.style.position='relative';
+      let bw=card.querySelector('.bat-warn');
+      if(pct<20){
+        if(!bw){bw=document.createElement('div');bw.className='bat-warn';card.appendChild(bw);}
+        bw.innerHTML=`<span class="bw-icon">🪫</span> ${pct}% Akku`;
+      } else {
+        if(bw) bw.remove();
+      }
+    }
+  } else {
+    document.getElementById('bat-'+key).innerHTML='';
+    const card=document.getElementById('card-'+key);
+    if(card){const bw=card.querySelector('.bat-warn');if(bw)bw.remove();}
+  }
   const seen=document.getElementById('seen-'+key);
   if(seen){seen.textContent=p.online?(p.updated?`Zuletzt: ${p.updated}`:''):'⚠ Gerät offline';
     seen.style.color=p.online?'var(--mu)':'var(--yel)';}
@@ -1548,6 +1799,15 @@ function renderErr(key,msg){
       if(b) b.innerHTML=`<div class="br fi" style="opacity:.5"><span style="font-size:11px">🔋</span>
         <div class="bb"><div class="bf ${cls}" style="width:${pct}%"></div></div>
         <span class="bp ${cls||'ok'}">${pct}%</span></div>`;
+      const card=document.getElementById('card-'+key);
+      if(card){
+        card.style.position='relative';
+        let bw=card.querySelector('.bat-warn');
+        if(pct<20){
+          if(!bw){bw=document.createElement('div');bw.className='bat-warn';card.appendChild(bw);}
+          bw.innerHTML=`<span class="bw-icon">🪫</span> ${pct}% Akku`;
+        } else { if(bw) bw.remove(); }
+      }
     }
     const seen=document.getElementById('seen-'+key);
     if(seen){seen.textContent=`⚠ Offline · Letzter Wert: ${lk.ts} Uhr`;seen.style.color='var(--yel)';}
@@ -1590,9 +1850,9 @@ async function loadWeather(){
     <div class="shimmer" style="height:80px"></div>`;
   const ts=Date.now();
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
-    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,surface_pressure,precipitation,weather_code,is_day`
+    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
     +`&hourly=temperature_2m,weather_code,precipitation_probability`
-    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
+    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset`
     +`&timezone=Europe%2FBerlin&forecast_days=7&_=${ts}`;
   try{
     const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(12000)});
@@ -1618,11 +1878,33 @@ async function loadWeather(){
   }
 }
 
+function toggleAutoBright(on){
+  if(on){ localStorage.setItem('ww_auto_bright','1'); autoBrightness(); }
+  else  { localStorage.removeItem('ww_auto_bright'); }
+}
+
+function windDir(deg){
+  if(deg===null||deg===undefined) return '';
+  const dirs=['N','NO','O','SO','S','SW','W','NW'];
+  const label=dirs[Math.round(deg/45)%8];
+  return `<span style="display:inline-block;transform:rotate(${deg}deg);font-size:1em">↑</span> ${label}`;
+}
+
 function renderWeather(d){
   const c=d.current,dd=d.daily,dh=d.hourly,now=new Date();
   const ico=WMO[c.weather_code]||'🌡️', desc=WDESC[c.weather_code]||'Unbekannt';
   const wts=document.getElementById('w-ts');
   if(wts) wts.textContent=`${now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`;
+
+  // Sonnenauf/-untergang heute
+  const srRaw=dd.sunrise?.[0], ssRaw=dd.sunset?.[0];
+  const fmtTime=s=>s?new Date(s).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'--:--';
+  const sunHTML=srRaw||ssRaw?`
+    <div class="sun-row fi">
+      <div class="sun-item"><span class="sun-icon">🌅</span><div class="sun-val">${fmtTime(srRaw)}</div><div class="sun-lbl">Aufgang</div></div>
+      <div class="sun-sep"></div>
+      <div class="sun-item"><span class="sun-icon">🌇</span><div class="sun-val">${fmtTime(ssRaw)}</div><div class="sun-lbl">Untergang</div></div>
+    </div>`:'';
 
   let hHTML='',cnt=0,fn=false;
   for(let i=0;i<dh.time.length&&cnt<24;i++){
@@ -1648,6 +1930,7 @@ function renderWeather(d){
     </div>`;
   }).join('');
 
+  const windDeg=c.wind_direction_10m??null;
   const bw=document.getElementById('body-weather');
   if(bw) bw.innerHTML=`
     <div class="wn fi"><div class="wi">${ico}</div>
@@ -1656,7 +1939,7 @@ function renderWeather(d){
     </div>
     <div class="ws fi">
       <div class="wst"><div class="wv">${Math.round(c.relative_humidity_2m)}%</div><div class="wl">Luftfeuchte</div></div>
-      <div class="wst"><div class="wv">${Math.round(c.wind_speed_10m)}<small> km/h</small></div><div class="wl">Wind</div></div>
+      <div class="wst"><div class="wv">${Math.round(c.wind_speed_10m)}<small> km/h</small></div><div class="wl">Wind ${windDeg!==null?windDir(windDeg):''}</div></div>
       <div class="wst"><div class="wv">${Math.round(c.wind_gusts_10m)}<small> km/h</small></div><div class="wl">Böen</div></div>
       <div class="wst"><div class="wv">${Math.round(c.surface_pressure)}<small> hPa</small></div><div class="wl">Luftdruck</div></div>
       <div class="wst"><div class="wv">${c.precipitation.toFixed(1)}<small> mm</small></div><div class="wl">Niederschlag</div></div>
@@ -1666,6 +1949,8 @@ function renderWeather(d){
     <div class="hourly fi">${hHTML}</div>
     <div class="sec-lbl">7-Tage Vorschau</div>
     <div class="fc fi">${fc}</div>`;
+  // Mini-Canvas nach Render neu einmessen & starten
+  setTimeout(()=>setMiniMode(wxMode), 50);
 }
 
 // ══════════════════════════════════════════════════════════════════
