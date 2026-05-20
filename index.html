@@ -807,6 +807,7 @@ html,body{
     </div>
     <div class="hdr-right">
       <div id="conn-pill" class="conn-pill cpc">☁ Cloud</div>
+      <div id="dev-bat" style="display:none;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--b2);color:var(--mu);white-space:nowrap"></div>
       <div>
         <div id="clock">--:--:--</div>
         <div id="dateline"></div>
@@ -2045,7 +2046,33 @@ window.addEventListener('resize', applyRotation);
 screen.orientation?.addEventListener('change', applyRotation);
 
 // ══════════════════════════════════════════════════════════════════
-// AUTO REFRESH
+// GERÄTE-AKKU (Battery API)
+// ══════════════════════════════════════════════════════════════════
+function updateDevBat(bat){
+  const el=document.getElementById('dev-bat');
+  if(!el) return;
+  const pct=Math.round(bat.level*100);
+  const charging=bat.charging;
+  const icon = charging ? '⚡' : pct>80 ? '🔋' : pct>40 ? '🪫' : '🪫';
+  const col  = charging ? 'var(--green)' : pct>40 ? 'var(--mu)' : pct>20 ? 'var(--yel)' : 'var(--red)';
+  el.style.display='block';
+  el.style.color=col;
+  el.style.borderColor=pct<20?'rgba(239,68,68,.4)':pct<40?'rgba(251,191,36,.3)':'var(--b2)';
+  el.textContent=`${icon} ${pct}%${charging?' ⚡':''}`;
+  el.title=`Gerät: ${pct}% ${charging?'(lädt)':''}`;
+}
+
+if('getBattery' in navigator){
+  navigator.getBattery().then(bat=>{
+    updateDevBat(bat);
+    bat.addEventListener('levelchange',  ()=>updateDevBat(bat));
+    bat.addEventListener('chargingchange',()=>updateDevBat(bat));
+  }).catch(()=>{});
+} else {
+  // Fallback: kein Battery API (z.B. Firefox, Desktop)
+  const el=document.getElementById('dev-bat');
+  if(el){ el.style.display='none'; }
+}
 // ══════════════════════════════════════════════════════════════════
 async function refreshAll(){
   const btn=document.getElementById('rbtn');
