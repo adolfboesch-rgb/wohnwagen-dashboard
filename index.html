@@ -819,12 +819,15 @@ html,body{
 
       <!-- myStrom -->
       <div id="plug-mystrom" style="display:none">
-        <div class="plug-row"><label class="plug-lbl">API Token</label>
-          <input class="plug-inp" id="myst-token" type="password" placeholder="myStrom API Token"
+        <div style="font-family:var(--mono);font-size:9px;color:var(--ac);margin-bottom:8px;padding:6px 8px;background:rgba(56,189,248,.08);border-radius:8px;border:1px solid rgba(56,189,248,.2)">
+          💡 Lokale IP — Seite muss als Datei geöffnet sein (file://) oder im gleichen WLAN
+        </div>
+        <div class="plug-row"><label class="plug-lbl">Lokale IP</label>
+          <input class="plug-inp" id="myst-ip" type="text" placeholder="10.10.20.222"
             oninput="savePlug()"></div>
-        <div class="plug-row"><label class="plug-lbl">Device MAC</label>
-          <input class="plug-inp" id="myst-mac" type="text" placeholder="z.B. 5CCF7FXXXXXX"
-            oninput="savePlug()"></div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:4px">
+          Kein Token nötig · direkter HTTP-Zugriff auf myStrom Switch
+        </div>
       </div>
 
       <!-- Schwelle + Toggle -->
@@ -2116,12 +2119,11 @@ let plugLastState = null; // 'on'|'off'
 
 function savePlug(){
   plugCfg = {
-    type:     document.getElementById('tab-shelly')?.classList.contains('active')?'shelly':'mystrom',
+    type:      document.getElementById('tab-shelly')?.classList.contains('active')?'shelly':'mystrom',
     shellyKey: document.getElementById('shelly-key')?.value||'',
     shellyDev: document.getElementById('shelly-dev')?.value||'',
     shellySrv: document.getElementById('shelly-srv')?.value||'shelly-103eu.shelly.cloud',
-    mystToken: document.getElementById('myst-token')?.value||'',
-    mystMac:   document.getElementById('myst-mac')?.value||'',
+    mystIp:    document.getElementById('myst-ip')?.value||'',
     threshold: parseInt(document.getElementById('plug-thr')?.value||'25'),
     enabled:   document.getElementById('plug-on')?.checked||false,
   };
@@ -2135,8 +2137,7 @@ function loadPlugUI(){
   if(si('shelly-key')) si('shelly-key').value=plugCfg.shellyKey||'';
   if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'';
   if(si('shelly-srv')) si('shelly-srv').value=plugCfg.shellySrv||'shelly-103eu.shelly.cloud';
-  if(si('myst-token')) si('myst-token').value=plugCfg.mystToken||'';
-  if(si('myst-mac'))   si('myst-mac').value=plugCfg.mystMac||'';
+  if(si('myst-ip'))    si('myst-ip').value=plugCfg.mystIp||'';
   if(si('plug-thr'))   si('plug-thr').value=plugCfg.threshold||25;
   if(si('plug-on'))    si('plug-on').checked=plugCfg.enabled||false;
 }
@@ -2181,16 +2182,18 @@ async function controlPlug(turnOn){
         setPlugStatus(`❌ Shelly Fehler: ${j.errors?.join(', ')||'unbekannt'}`, false);
       }
     } else {
-      // myStrom Cloud API
-      const url = `https://mystrom.ch/api/device/switch?authToken=${plugCfg.mystToken}&mac=${plugCfg.mystMac}&state=${turnOn?1:0}`;
-      const r = await fetch(url);
+      // myStrom lokal — direkt HTTP auf lokale IP
+      const ip = plugCfg.mystIp || '10.10.20.222';
+      const url = `http://${ip}/relay`;
+      const body = new URLSearchParams({ state: turnOn ? '1' : '0' });
+      const r = await fetch(url, {
+        method: 'POST',
+        body,
+        signal: AbortSignal.timeout(4000),
+      });
       const j = await r.json();
-      if(j.status==='ok'||r.ok){
-        plugLastState = want;
-        setPlugStatus(`✅ myStrom ${turnOn?'EIN':'AUS'} (${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})})`, true);
-      } else {
-        setPlugStatus(`❌ myStrom Fehler: ${JSON.stringify(j)}`, false);
-      }
+      plugLastState = want;
+      setPlugStatus(`✅ myStrom ${turnOn?'EIN':'AUS'} · ${ip} (${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})})`, true);
     }
   } catch(e){
     setPlugStatus(`❌ Verbindungsfehler: ${e.message}`, false);
