@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>🏕️ Wohnwagen Schluchsee</title>
 
 <style>
@@ -72,18 +74,22 @@ h1{
 <h1>🏕️ Wohnwagen Schluchsee</h1>
 
 <div class="card">
+
   <h2>🌤️ Aktuelles Wetter</h2>
 
   <div id="weather">
     Wetter wird geladen...
   </div>
+
 </div>
 
 <div class="card">
+
   <h2>🕒 Stundenansicht</h2>
 
   <div class="hourly" id="hourly">
   </div>
+
 </div>
 
 <script>
@@ -145,9 +151,8 @@ async function loadWeather(){
 
   }catch(error){
 
-    document.getElementById('weather').innerHTML = `
-      Wetter offline
-    `;
+    document.getElementById('weather').innerHTML =
+      '⚠ Wetter offline';
 
     console.error(error);
   }
