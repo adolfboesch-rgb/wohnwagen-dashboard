@@ -1980,18 +1980,32 @@ async function loadWeather(){
     <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
     <div class="shimmer" style="height:80px"></div>`;
   const ts=Date.now();
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
+  const params=`latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
     +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
     +`&hourly=temperature_2m,weather_code,precipitation_probability`
     +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset`
     +`&timezone=Europe%2FBerlin&forecast_days=7&_=${ts}`;
+  // Direkte URL + CORS-Proxy Fallback für lokale Dateien
+  const urls=[
+    `https://api.open-meteo.com/v1/forecast?${params}`,
+    `https://corsproxy.io/?https://api.open-meteo.com/v1/forecast?${params}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.open-meteo.com/v1/forecast?'+params)}`,
+  ];
   try{
-    const ctrl=new AbortController();
-    const tid=setTimeout(()=>ctrl.abort(),12000);
-    const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});
-    clearTimeout(tid);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const d=await r.json();
+    let d=null;
+    for(const url of urls){
+      try{
+        const ctrl=new AbortController();
+        const tid=setTimeout(()=>ctrl.abort(),10000);
+        const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});
+        clearTimeout(tid);
+        if(!r.ok) continue;
+        d=await r.json();
+        if(d&&d.current) break; // Erfolg
+        d=null;
+      }catch(e2){ continue; }
+    }
+    if(!d||!d.current) throw new Error('Alle URLs fehlgeschlagen');
     currentWxCode=d.current.weather_code;
     localStorage.setItem('ww_last_weather_cache_v6', JSON.stringify(d));
     setWeatherBG(currentWxCode, d.current.is_day===0);
