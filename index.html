@@ -2293,28 +2293,64 @@ if('getBattery' in navigator){
 // ══════════════════════════════════════════════════════════════════
 async function refreshAll(){
   const btn=document.getElementById('rbtn');
-  btn.innerHTML='<span class="spin">⟳</span> Laden…'; btn.disabled=true;
-  document.getElementById('status-msg').textContent='Aktualisiere…';
+  const status=document.getElementById('status-msg');
+  if(btn){ btn.innerHTML='<span class="spin">⟳</span> Laden…'; btn.disabled=true; }
+  if(status) status.textContent='Aktualisiere…';
 
-  // Wichtig für Shelly Cloud: nicht alle BLU HT Sensoren gleichzeitig abfragen.
-  // Sonst kommt zeitweise "Kein Empfang" obwohl der Sensor korrekt funktioniert.
-  const sensorKeys=cardOrder.filter(k=>k!=='wetter');
-  for(const key of sensorKeys){
-    await loadSensor(key);
-    await sleep(900);
+  let errors=[];
+  try{
+    // Samsung/Android-Fix: Wetter zuerst laden. Wenn Sensor/Cloud hängt,
+    // bleibt die Wetterkarte trotzdem automatisch aktuell.
+    try{ await loadWeather(); }
+    catch(e){ errors.push('Wetter'); console.log('Wetter Fehler', e); }
+
+    // Wichtig für Shelly Cloud: nicht alle BLU HT Sensoren gleichzeitig abfragen.
+    // Jeder Sensor bekommt seine eigene Fehlerbehandlung, damit ein Ausfall
+    // nicht die ganze Aktualisierung stoppt.
+    const sensorKeys=cardOrder.filter(k=>k!=='wetter');
+    for(const key of sensorKeys){
+      try{ await loadSensor(key); }
+      catch(e){ errors.push(DEVICES[key]?.label||key); console.log('Sensor Fehler', key, e); }
+      await sleep(900);
+    }
+
+    const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    window.lastRefreshTime=Date.now();
+    if(status){
+      status.innerHTML = errors.length
+        ? `<span class="er">⚠</span> ${ts} · Teilweise offline · Auto alle ${refreshMins} Min`
+        : `<span class="ok">✓</span> ${ts} · Auto alle ${refreshMins} Min`;
+    }
+  }finally{
+    if(btn){ btn.innerHTML='⟳ Aktualisieren'; btn.disabled=false; }
   }
-  await loadWeather();
-
-  const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  window.lastRefreshTime=Date.now();
-  document.getElementById('status-msg').innerHTML=`<span class="ok">✓</span> ${ts} · Auto alle ${refreshMins} Min`;
-  btn.innerHTML='⟳ Aktualisieren'; btn.disabled=false;
 }
 
 function restartAutoRefresh(){
   clearInterval(window._ar);
-  window._ar=setInterval(async()=>{try{await refreshAll();}catch(e){console.log('Refresh Fehler',e);}}, refreshMins*60*1000);
+  const mins=Math.max(1, parseInt(refreshMins||2));
+  window._ar=setInterval(async()=>{try{await refreshAll();}catch(e){console.log('Refresh Fehler',e);}}, mins*60*1000);
 }
+
+// Samsung/Android Auto-Fix: nach Standby, Netzwechsel oder Zurückkommen
+// aus dem Hintergrund sofort wieder selbst aktualisieren.
+let _resumeRefreshTimer=null;
+function scheduleResumeRefresh(reason='resume'){
+  clearTimeout(_resumeRefreshTimer);
+  _resumeRefreshTimer=setTimeout(async()=>{
+    try{
+      console.log('Auto-Refresh nach', reason);
+      await refreshAll();
+      restartAutoRefresh();
+      enableWakeLock();
+    }catch(e){ console.log('Resume Refresh Fehler', e); }
+  }, 800);
+}
+window.addEventListener('online', ()=>scheduleResumeRefresh('online'));
+window.addEventListener('pageshow', ()=>scheduleResumeRefresh('pageshow'));
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible') scheduleResumeRefresh('visible');
+});
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
