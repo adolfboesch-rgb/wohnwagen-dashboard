@@ -1983,8 +1983,8 @@ async function loadWeather(){
   const params=`latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
     +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
     +`&hourly=temperature_2m,weather_code,precipitation_probability`
-    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset`
-    +`&timezone=Europe%2FBerlin&forecast_days=7&_=${ts}`;
+    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
+    +`&timezone=auto&forecast_days=7&_=${ts}`;
   // Direkte URL + CORS-Proxy Fallback für lokale Dateien
   const urls=[
     `https://api.open-meteo.com/v1/forecast?${params}`,
