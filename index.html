@@ -1003,7 +1003,7 @@ let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || s
 let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
-let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'2');
+let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
 let ssTimerMins  = parseInt(localStorage.getItem('ww_ss_v5')||'0');
 const lastKnown  = JSON.parse(localStorage.getItem('ww_last_sensor_cache_v6')||'{}');
 let currentWxCode = 0;
@@ -1823,16 +1823,21 @@ async function fetchCloud(id){
   const urls=[`${PROXY}/device/status`,`https://${CLOUD}/device/status`];
   let lastErr=null;
 
-  for(let attempt=1; attempt<=3; attempt++){
+  for(let attempt=1; attempt<=1; attempt++){  // Nur 1 Versuch - kein Retry
     for(const url of urls){
       try{
+        const ctrl=new AbortController();
+        const tid=setTimeout(()=>ctrl.abort(),12000);
         const r=await fetch(url,{
           method:'POST',
           headers:{'Content-Type':'application/x-www-form-urlencoded'},
           body,
           cache:'no-store',
-          signal:AbortSignal.timeout(15000)
+          signal:ctrl.signal
         });
+        clearTimeout(tid);
+        // 429 = Worker-Limit erreicht - direkt zur Cloud-URL
+        if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
         if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
 
         const j=await r.json();
@@ -1844,7 +1849,6 @@ async function fetchCloud(id){
         const s=j.data?.device_status || j.data?.status || j.device_status || j.status || j.data || j;
         const online=j.data?.online!==false;
 
-        // Shelly BLU HT liefert je nach Cloud-Version andere Namen.
         const temp = s['temperature:0']?.tC ?? s.temperature?.tC ?? s.tmp?.value ??
                      s.temperature ?? s.tmp ?? s.tC ?? pickDeep(s,['tC','temperature','tmp','temp']);
         const hum  = s['humidity:0']?.rh ?? s.humidity?.rh ?? s.hum?.value ??
@@ -1860,7 +1864,6 @@ async function fetchCloud(id){
         lastErr=e;
       }
     }
-    await sleep(1200*attempt);
   }
   throw lastErr || new Error('Cloud nicht erreichbar');
 }
