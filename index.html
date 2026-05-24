@@ -1997,18 +1997,20 @@ async function loadWeather(){
 
   try{
     let d=null;
+    let lastErr='';
     for(const u of servers){
       try{
         const ctrl=new AbortController();
         const tid=setTimeout(()=>ctrl.abort(),8000);
         const r=await fetch(u,{signal:ctrl.signal});
         clearTimeout(tid);
-        if(!r.ok) continue;
+        if(!r.ok){ lastErr=`HTTP ${r.status}`; continue; }
         const j=await r.json();
         if(j&&j.current&&j.daily){ d=j; break; }
-      }catch(e2){ continue; }
+        else lastErr='Keine Daten';
+      }catch(e2){ lastErr=e2.message; continue; }
     }
-    if(!d||!d.current) throw new Error('Alle Server nicht erreichbar');
+    if(!d||!d.current) throw new Error(lastErr||'Alle Server fehlgeschlagen');
     currentWxCode=d.current.weather_code;
     localStorage.setItem('ww_last_weather_cache_v6', JSON.stringify(d));
     setWeatherBG(currentWxCode, d.current.is_day===0);
