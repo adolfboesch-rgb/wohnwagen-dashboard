@@ -1981,32 +1981,34 @@ async function loadWeather(){
     <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
     <div class="shimmer" style="height:80px"></div>`;
   const ts=Date.now();
-  const url=`https://api.open-meteo.com/v1/forecast`
-    +`?latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
+  // Mehrere Server versuchen - open-meteo hat Probleme seit Mai 2026
+  const baseParams=`latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
     +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
     +`&hourly=temperature_2m,weather_code,precipitation_probability`
     +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
     +`&timezone=auto&forecast_days=7`;
-  const urlBackup=`https://api.open-meteo.com/v1/forecast`
-    +`?latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
-    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
-    +`&hourly=temperature_2m,weather_code,precipitation_probability`
-    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
-    +`&timezone=Europe/Berlin&forecast_days=7`;
+
+  const servers=[
+    `https://api.open-meteo.com/v1/forecast?${baseParams}`,
+    `https://customer-api.open-meteo.com/v1/forecast?${baseParams}`,
+    `https://api2.open-meteo.com/v1/forecast?${baseParams}`,
+    `https://historical-forecast-api.open-meteo.com/v1/forecast?${baseParams}`,
+  ];
+
   try{
     let d=null;
-    for(const u of [url, urlBackup]){
+    for(const u of servers){
       try{
         const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),15000);
+        const tid=setTimeout(()=>ctrl.abort(),8000);
         const r=await fetch(u,{signal:ctrl.signal});
         clearTimeout(tid);
         if(!r.ok) continue;
         const j=await r.json();
-        if(j&&j.current){ d=j; break; }
+        if(j&&j.current&&j.daily){ d=j; break; }
       }catch(e2){ continue; }
     }
-    if(!d||!d.current) throw new Error('API nicht erreichbar');
+    if(!d||!d.current) throw new Error('Alle Server nicht erreichbar');
     currentWxCode=d.current.weather_code;
     localStorage.setItem('ww_last_weather_cache_v6', JSON.stringify(d));
     setWeatherBG(currentWxCode, d.current.is_day===0);
