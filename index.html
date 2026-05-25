@@ -2043,6 +2043,7 @@ function windDir(deg){
 
 function renderWeather(d){
   const c=d.current,dd=d.daily,dh=d.hourly,now=new Date();
+  const bw=document.getElementById('body-weather');
   const isDay=c.is_day!==0;
   const ico=wmoIcon(c.weather_code, isDay)||'🌡️';
   const desc=(!isDay&&WDESC_NIGHT[c.weather_code])||WDESC[c.weather_code]||'Unbekannt';
