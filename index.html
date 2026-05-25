@@ -2297,11 +2297,15 @@ async function refreshAll(){
   // Wichtig für Shelly Cloud: nicht alle BLU HT Sensoren gleichzeitig abfragen.
   // Sonst kommt zeitweise "Kein Empfang" obwohl der Sensor korrekt funktioniert.
   const sensorKeys=cardOrder.filter(k=>k!=='wetter');
+  // Wetter und Sensoren parallel laden - ein Fehler blockiert den anderen nicht
+  const weatherPromise = loadWeather().catch(e=>console.log('Wetter Fehler:',e));
+  
   for(const key of sensorKeys){
-    await loadSensor(key);
+    loadSensor(key).catch(e=>console.log('Sensor Fehler:',key,e));
     await sleep(900);
   }
-  await loadWeather();
+  
+  await weatherPromise;
 
   const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   window.lastRefreshTime=Date.now();
