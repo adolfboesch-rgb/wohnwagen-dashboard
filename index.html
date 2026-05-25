@@ -1996,18 +1996,22 @@ async function loadWeather(){
   ];
 
   try{
+    console.log('Wetter: Starte Fetch...');
     const ctrl=new AbortController();
     const tid=setTimeout(()=>ctrl.abort(),15000);
     const r=await fetch(`https://api.open-meteo.com/v1/forecast?${baseParams}`,{signal:ctrl.signal});
     clearTimeout(tid);
+    console.log('Wetter: HTTP Status:', r.status);
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
+    console.log('Wetter: Daten erhalten:', !!d?.current);
     if(!d||!d.current) throw new Error('Keine Daten');
     currentWxCode=d.current.weather_code;
     localStorage.setItem('ww_last_weather_cache_v6', JSON.stringify(d));
     setWeatherBG(currentWxCode, d.current.is_day===0);
     renderWeather(d);
   }catch(e){
+    console.log('Wetter Fehler:', e.message, e);
     const cached=localStorage.getItem('ww_last_weather_cache_v6');
     if(cached){
       try{
