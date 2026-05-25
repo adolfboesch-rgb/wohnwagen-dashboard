@@ -2012,6 +2012,7 @@ async function loadWeather(){
     renderWeather(d);
   }catch(e){
     console.log('Wetter Fehler:', e.message, e);
+    const bw=document.getElementById('body-weather');
     const cached=localStorage.getItem('ww_last_weather_cache_v6');
     if(cached){
       try{
