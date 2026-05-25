@@ -1993,27 +1993,16 @@ async function loadWeather(){
 
   const servers=[
     `https://api.open-meteo.com/v1/forecast?${baseParams}`,
-    `https://customer-api.open-meteo.com/v1/forecast?${baseParams}`,
-    `https://api2.open-meteo.com/v1/forecast?${baseParams}`,
-    `https://historical-forecast-api.open-meteo.com/v1/forecast?${baseParams}`,
   ];
 
   try{
-    let d=null;
-    let lastErr='';
-    for(const u of servers){
-      try{
-        const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),8000);
-        const r=await fetch(u,{signal:ctrl.signal});
-        clearTimeout(tid);
-        if(!r.ok){ lastErr=`HTTP ${r.status}`; continue; }
-        const j=await r.json();
-        if(j&&j.current&&j.daily){ d=j; break; }
-        else lastErr='Keine Daten';
-      }catch(e2){ lastErr=e2.message; continue; }
-    }
-    if(!d||!d.current) throw new Error(lastErr||'Alle Server fehlgeschlagen');
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),15000);
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?${baseParams}`,{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(!d||!d.current) throw new Error('Keine Daten');
     currentWxCode=d.current.weather_code;
     localStorage.setItem('ww_last_weather_cache_v6', JSON.stringify(d));
     setWeatherBG(currentWxCode, d.current.is_day===0);
