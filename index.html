@@ -810,7 +810,7 @@ html,body{
           <input class="plug-inp" id="shelly-key" type="password" placeholder="Shelly Cloud Auth Key"
             oninput="savePlug()"></div>
         <div class="plug-row"><label class="plug-lbl">Device ID</label>
-          <input class="plug-inp" id="shelly-dev" type="text" placeholder="z.B. shellyplug-s-XXXXXX"
+          <input class="plug-inp" id="shelly-dev" type="text" placeholder="7c2c6768d8b4"
             oninput="savePlug()"></div>
         <div class="plug-row"><label class="plug-lbl">Server</label>
           <input class="plug-inp" id="shelly-srv" type="text" placeholder="shelly-103eu.shelly.cloud"
@@ -2196,7 +2196,7 @@ function loadPlugUI(){
   switchPlugTab(plugCfg.type);
   const si=v=>document.getElementById(v);
   if(si('shelly-key')) si('shelly-key').value=plugCfg.shellyKey||'';
-  if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'';
+  if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'7c2c6768d8b4';
   if(si('shelly-srv')) si('shelly-srv').value=plugCfg.shellySrv||'shelly-103eu.shelly.cloud';
   if(si('myst-ip'))    si('myst-ip').value=plugCfg.mystIp||'';
   if(si('plug-thr'))   si('plug-thr').value=plugCfg.threshold||25;
