@@ -908,11 +908,12 @@ const AUTH  = 'MTBlYjk0dWlk3F27866A3E243F44467066199D14C9FDDC950479C48626129D18A
 const PROXY = 'https://solitary-haze-e0d5.adolf-boesch.workers.dev';
 const CLOUD = 'shelly-71-eu.shelly.cloud';
 
-// Geräte: BLU HT (Bluetooth, via Cloud) – IDs geprüft am 19.05.2026
+// Geräte – IDs geprüft am 25.05.2026
 const DEVICES = {
-  // BLU HT Sensoren – über Cloud
-  blu1:   { id:'XB137192906687768', ids:['XB137192906687768'], localIp:null, label:'Raumtemperatur Vorbau',    icon:'❄️', acc:'ap', tag:'BLU HT' },
-  blu2:   { id:'XB137192906397952', ids:['XB137192906397952'], localIp:null, label:'Raumtemperatur Wohnwagen', icon:'🏠', acc:'ao', tag:'BLU HT' },
+  // Shelly H&T G3 Sensoren – lokal + Cloud
+  blu1:   { id:'543204576ac4', ids:['543204576ac4'], localIp:'10.10.20.76',  label:'Vorbau Wohnwagen Raumtemperatur',  icon:'❄️', acc:'ap', tag:'H&T G3' },
+  blu2:   { id:'54320457aee8', ids:['54320457aee8'], localIp:'10.10.20.209', label:'Wohnwagen Raumtemperatur',          icon:'🏠', acc:'ao', tag:'H&T G3' },
+  // BLU HT Sensor – über Cloud
   aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',          icon:'🌿', acc:'as', tag:'BLU HT' },
   wetter: { id:'wetter',            localIp:null, label:'Wetter',                   icon:'🌍', acc:'as', tag:''       },
 };
