@@ -1941,8 +1941,8 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'280px':'0px'};transition:height .4s ease">
-      <div id="radar-map" style="width:100%;height:280px"></div>
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'220px':'0px'};transition:height .4s ease">
+      <div id="radar-map" style="width:100%;height:220px"></div>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
@@ -1965,7 +1965,7 @@ function toggleRadar(){
     if(radarMap){ radarMap.remove(); radarMap=null; radarLayer=null; }
     autoScale();
   } else {
-    wrap.style.height='280px';
+    wrap.style.height='220px';
     hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff'; btn.textContent='● Ausblenden';
     setTimeout(()=>{ initRadarMap(true); autoScale(); },420);
@@ -1995,8 +1995,8 @@ function initRadarMap(force=false){
 
 function buildRadarMap(mapDiv){
   const lat=47.818, lng=8.194;
-  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:2,maxZoom:6}).setView([lat,lng],5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:2,maxZoom:6,opacity:0.8}).addTo(radarMap);
+  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:6}).setView([lat,lng],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:6,opacity:0.8}).addTo(radarMap);
 
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3}).addTo(radarMap)
    .bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
@@ -2022,7 +2022,7 @@ function addRadarFrame(idx){
   const path=radarFrames[idx].path;
   radarLayer=L.tileLayer(
     `https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7, tileSize:256, minZoom:2, maxZoom:6}
+    {opacity:0.7, tileSize:256, minZoom:4, maxZoom:6}
   );
   radarLayer.addTo(radarMap);
 }
@@ -2637,7 +2637,7 @@ function autoScale(){
   const h = window.innerHeight;
   if(w < 600){ document.documentElement.style.zoom=''; return; }
   // App-Höhe bei zoom=1 mit Radar (AN): ~1380px
-  const naturalH = 1380;
+  const naturalH = 1300;
   let scale = (h * 0.98) / naturalH;
   scale = Math.max(0.55, Math.min(1.0, scale));
   document.documentElement.style.zoom = scale.toFixed(3);
