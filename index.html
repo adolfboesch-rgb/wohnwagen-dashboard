@@ -4,8 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wohnwagen">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#bae6fd">
+<meta name="application-name" content="Wohnwagen Schluchsee">
+<meta name="description" content="Wohnwagen Monitoring – Temperatur, Wetter, Radar">
+<link id="pwa-manifest" rel="manifest">
 <title>🏕️ Wohnwagen Schluchsee</title>
+<script>
+// Inline PWA Manifest – kein externes manifest.json nötig
+(function(){
+  const manifest = {
+    name: "Wohnwagen Schluchsee",
+    short_name: "Wohnwagen",
+    description: "Temperatur, Wetter & Radar",
+    start_url: "./",
+    display: "standalone",
+    orientation: "any",
+    background_color: "#bae6fd",
+    theme_color: "#bae6fd",
+    icons: [
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏕️</text></svg>", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').href = url;
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -15,6 +42,7 @@
   --b2:rgba(3,105,161,.12);--b3:rgba(3,105,161,.25);
   --mono:'Space Mono',monospace;--sans:'Syne',sans-serif;
   --brightness:1;--bg-hex:#bae6fd;--bg-rgb:186,230,253;
+  --wx-card:rgba(255,255,255,.08);--wx-temp:#0c2340;--wx-val:#0369a1;--wx-hv:#0c2340;--wx-icon-br:1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{filter:brightness(var(--brightness))}
@@ -279,34 +307,34 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* ── WEATHER ── */
 .wn{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
-.wi{font-size:clamp(48px,10vw,68px);line-height:1;filter:drop-shadow(0 0 20px rgba(56,189,248,.3))}
-.wt{font-family:var(--mono);font-size:clamp(40px,10vw,62px);font-weight:700;line-height:1}
+.wi{font-size:clamp(48px,10vw,68px);line-height:1;filter:drop-shadow(0 0 20px rgba(56,189,248,.3)) brightness(var(--wx-icon-br))}
+.wt{font-family:var(--mono);font-size:clamp(40px,10vw,62px);font-weight:700;line-height:1;color:var(--wx-temp)}
 .wt .u{font-size:.44em;color:var(--mu)}
 .wd{font-size:12px;color:var(--mu);margin-top:4px}
 .ws{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
 @media(min-width:500px){.ws{grid-template-columns:repeat(6,1fr)}}
-.wst{background:rgba(255,255,255,.05);border:1px solid var(--b2);border-radius:9px;padding:9px 6px;text-align:center}
-.wv{font-family:var(--mono);font-size:clamp(12px,2.5vw,15px);font-weight:700;color:var(--ac)}
+.wst{background:var(--wx-card);border:1px solid var(--b2);border-radius:9px;padding:9px 6px;text-align:center}
+.wv{font-family:var(--mono);font-size:clamp(12px,2.5vw,15px);font-weight:700;color:var(--wx-val)}
 .wl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
 .sec-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:var(--mono)}
 .hourly{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;
   scrollbar-width:none;scrollbar-color:transparent transparent}
 .hourly::-webkit-scrollbar{height:0;display:none}
 .hourly::-webkit-scrollbar-thumb{background:transparent;border-radius:2px}
-.hc{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:12px;padding:10px 9px;text-align:center;min-width:62px}
+.hc{flex-shrink:0;background:var(--wx-card);border:1px solid var(--b2);border-radius:12px;padding:10px 9px;text-align:center;min-width:62px}
 .hc.now{border-color:var(--green);background:rgba(52,211,153,.08)}
 .ht{font-family:var(--mono);font-size:10px;color:var(--mu)}
 .hc.now .ht{color:var(--green)}
-.hi{font-size:22px;margin:5px 0}
-.hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--tx)}
+.hi{font-size:22px;margin:5px 0;filter:brightness(var(--wx-icon-br))}
+.hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--wx-hv)}
 .hr{font-size:10px;color:var(--rain);font-family:var(--mono);margin-top:2px}
 .fc{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 @media(max-width:450px){.fc{grid-template-columns:repeat(4,1fr)}.fcd:nth-child(n+5){display:none}}
-.fcd{background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
+.fcd{background:var(--wx-card);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
 .fcd.today{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.08)}
 .fdn{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu)}
 .fcd.today .fdn{color:var(--ac)}
-.fdi{font-size:18px;margin:3px 0}
+.fdi{font-size:18px;margin:3px 0;filter:brightness(var(--wx-icon-br))}
 .fdh{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
 .fdl{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:1px}
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
@@ -494,7 +522,9 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
   .sensor-row .br{margin-top:6px!important;padding-top:5px!important}
   .sensor-row .ls{font-size:7px!important;margin-top:2px!important}
 
-  #card-wetter.card{padding:10px 12px!important;border-radius:16px!important;min-height:auto!important}
+  #card-radar.card{padding:12px!important}
+.radar-lbl{background:#0369a1!important;color:#fff!important;border:none!important;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+.radar-lbl::before{border-right-color:#0369a1!important}
   #card-wetter .ch{margin-bottom:6px!important}
   .wn{gap:10px!important;margin-bottom:5px!important}
   .wi{font-size:clamp(34px,4.2vw,50px)!important}
@@ -763,7 +793,53 @@ html,body{
     </div>
 
     <div class="sp-sec">
-      <div class="sp-lbl">☀️ Helligkeit</div>
+      <div class="sp-lbl">🌤 Wetterfarben</div>
+      <div style="display:grid;gap:10px;font-family:var(--mono);font-size:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--tx)">🌡 Grosse Temperatur</span>
+          <input type="color" id="wx-temp-pick" value="#0c2340" oninput="setWxColor('temp',this.value)"
+            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--tx)">🕐 Stunden-/Tagestemperatur</span>
+          <input type="color" id="wx-hv-pick" value="#0c2340" oninput="setWxColor('hv',this.value)"
+            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--tx)">💨 Werte (Wind, Druck…)</span>
+          <input type="color" id="wx-val-pick" value="#0369a1" oninput="setWxColor('val',this.value)"
+            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--tx)">🟦 Karten-Hintergrund</span>
+          <input type="color" id="wx-card-pick" value="#ffffff" oninput="setWxColor('card',this.value)"
+            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--mu);font-size:10px">Karten-Transparenz</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="range" id="wx-alpha-sl" min="0" max="100" value="8"
+              oninput="setWxAlpha(this.value)" style="width:100px">
+            <span id="wx-alpha-val" style="color:var(--tx);min-width:30px">8%</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="color:var(--mu);font-size:10px">🌤 Icon-Helligkeit</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px">🌑</span>
+            <input type="range" id="wx-icon-sl" min="30" max="300" value="100"
+              oninput="setWxIconBr(this.value)" style="width:100px">
+            <span style="font-size:12px">☀️</span>
+            <span id="wx-icon-val" style="color:var(--tx);min-width:35px">100%</span>
+          </div>
+        </div>
+        <button onclick="resetWxColors()"
+          style="margin-top:4px;padding:6px 14px;background:var(--b2);border:1px solid var(--b3);
+          border-radius:8px;color:var(--mu);font-family:var(--mono);font-size:10px;cursor:pointer">
+          ↺ Wetterfarben zurücksetzen
+        </button>
+      </div>
+    </div>
       <div class="sl-row">
         <span class="sl-ico">🌑</span>
         <input type="range" id="bright-sl" min="30" max="150" value="100" oninput="setBright(this.value)">
@@ -916,6 +992,7 @@ const DEVICES = {
   // BLU HT Sensor – über Cloud
   aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',          icon:'🌿', acc:'as', tag:'BLU HT' },
   wetter: { id:'wetter',            localIp:null, label:'Wetter',                   icon:'🌍', acc:'as', tag:''       },
+  radar:  { id:'radar',             localIp:null, label:'Wetterradar',               icon:'🛰️', acc:'as', tag:''       },
 };
 
 const DEFAULT_LOCS = [
@@ -1001,13 +1078,58 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // ══════════════════════════════════════════════════════════════════
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || {name:'Hellblau',hex:'#bae6fd'};
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
 let ssTimerMins  = parseInt(localStorage.getItem('ww_ss_v5')||'0');
 const lastKnown  = JSON.parse(localStorage.getItem('ww_last_sensor_cache_v6')||'{}');
 let currentWxCode = 0;
+
+// Wetterfarben
+const WX_DEFAULTS = { temp:'#0c2340', hv:'#0c2340', val:'#0369a1', cardHex:'#ffffff', cardAlpha:8, iconBr:100 };
+let wxColors = JSON.parse(localStorage.getItem('ww_wx_colors_v1')||'null') || {...WX_DEFAULTS};
+function saveWxColors(){ localStorage.setItem('ww_wx_colors_v1', JSON.stringify(wxColors)); }
+function applyWxColors(){
+  const r = document.documentElement.style;
+  r.setProperty('--wx-temp', wxColors.temp);
+  r.setProperty('--wx-hv',   wxColors.hv);
+  r.setProperty('--wx-val',  wxColors.val);
+  const a = (wxColors.cardAlpha||8)/100;
+  const h = wxColors.cardHex||'#ffffff';
+  const rgb = hexToRgb(h);
+  if(rgb) r.setProperty('--wx-card', `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`);
+  r.setProperty('--wx-icon-br', ((wxColors.iconBr||100)/100).toFixed(2));
+}
+function setWxColor(key, val){
+  if(key==='temp') wxColors.temp=val;
+  else if(key==='hv') wxColors.hv=val;
+  else if(key==='val') wxColors.val=val;
+  else if(key==='card') wxColors.cardHex=val;
+  saveWxColors(); applyWxColors();
+}
+function setWxAlpha(val){
+  wxColors.cardAlpha=parseInt(val);
+  document.getElementById('wx-alpha-val').textContent=val+'%';
+  saveWxColors(); applyWxColors();
+}
+function setWxIconBr(val){
+  wxColors.iconBr=parseInt(val);
+  document.getElementById('wx-icon-val').textContent=val+'%';
+  saveWxColors(); applyWxColors();
+}
+function resetWxColors(){
+  wxColors={...WX_DEFAULTS}; saveWxColors(); applyWxColors(); loadWxColorPickers();
+}
+function loadWxColorPickers(){
+  const s=id=>{const e=document.getElementById(id);return e;};
+  if(s('wx-temp-pick')) s('wx-temp-pick').value=wxColors.temp;
+  if(s('wx-hv-pick'))   s('wx-hv-pick').value=wxColors.hv;
+  if(s('wx-val-pick'))  s('wx-val-pick').value=wxColors.val;
+  if(s('wx-card-pick')) s('wx-card-pick').value=wxColors.cardHex||'#ffffff';
+  if(s('wx-alpha-sl'))  { s('wx-alpha-sl').value=wxColors.cardAlpha||8; s('wx-alpha-val').textContent=(wxColors.cardAlpha||8)+'%'; }
+  if(s('wx-icon-sl'))   { s('wx-icon-sl').value=wxColors.iconBr||100; s('wx-icon-val').textContent=(wxColors.iconBr||100)+'%'; }
+}
 
 function saveLocs()  { localStorage.setItem('ww_locs_v5',   JSON.stringify(savedLocs)); }
 function saveActive(){ localStorage.setItem('ww_active_v5', JSON.stringify(activeLoc)); }
@@ -1610,6 +1732,7 @@ function openSP(){
   document.getElementById('hue-sl').value=hsl.h||220;
   document.getElementById('ss-sl').value=ssTimerMins;
   document.getElementById('ss-val').textContent=ssTimerMins===0?'Aus':ssTimerMins+' Min';
+  loadWxColorPickers();
   document.getElementById('sp-overlay').classList.add('open');
 }
 function closeSP(e){ if(e.target===document.getElementById('sp-overlay')) closeSPBtn(); }
@@ -1699,22 +1822,23 @@ function dDrop(e) {
 // ══════════════════════════════════════════════════════════════════
 function renderCards(){
   const container=document.getElementById('card-container');
-  const wetterIdx=cardOrder.indexOf('wetter');
-  const sensors=cardOrder.filter(k=>k!=='wetter');
-
-  if(wetterIdx===0){
-    container.innerHTML=renderWeatherCard()+`<div class="sensor-row">${sensors.map(renderSensorCard).join('')}</div>`;
-  } else if(wetterIdx===cardOrder.length-1){
-    container.innerHTML=`<div class="sensor-row">${sensors.map(renderSensorCard).join('')}</div>`+renderWeatherCard();
-  } else {
-    const before=cardOrder.slice(0,wetterIdx).filter(k=>k!=='wetter');
-    const after=cardOrder.slice(wetterIdx+1).filter(k=>k!=='wetter');
-    let html='';
-    if(before.length) html+=`<div class="sensor-row">${before.map(renderSensorCard).join('')}</div>`;
-    html+=renderWeatherCard();
-    if(after.length)  html+=`<div class="sensor-row">${after.map(renderSensorCard).join('')}</div>`;
-    container.innerHTML=html;
+  const specialKeys=['wetter','radar'];
+  const sensors=cardOrder.filter(k=>!specialKeys.includes(k));
+  
+  // Build ordered list preserving position of special cards
+  let html='';
+  let sensorBuf=[];
+  for(const k of cardOrder){
+    if(k==='wetter'||k==='radar'){
+      if(sensorBuf.length){ html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`; sensorBuf=[]; }
+      html+= k==='wetter' ? renderWeatherCard() : renderRadarCard();
+    } else {
+      sensorBuf.push(k);
+    }
   }
+  if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
+  container.innerHTML=html;
+  initRadarMap();
 }
 
 function renderSensorCard(key){
@@ -1742,6 +1866,111 @@ function renderWeatherCard(){
       <div class="shimmer" style="height:80px"></div>
     </div>
   </div>`;
+}
+
+function renderRadarCard(){
+  const radarOn = localStorage.getItem('ww_radar_on')==='1';
+  return`<div class="card" id="card-radar" style="position:relative;overflow:hidden;padding:12px">
+    <div class="cal as"></div>
+    <div class="ch" style="margin-bottom:8px">
+      <div style="font-size:14px">🛰️</div>
+      <div class="ct">Wetterradar</div>
+      <div class="tag">RainViewer</div>
+      <button id="radar-toggle-btn" onclick="toggleRadar()"
+        style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:700;
+        background:${radarOn?'#0369a1':'var(--b2)'};color:${radarOn?'#fff':'var(--mu)'}">
+        ${radarOn?'● AN':'○ AUS'}
+      </button>
+    </div>
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'320px':'0px'};transition:height .4s ease">
+      <div id="radar-map" style="width:100%;height:320px"></div>
+    </div>
+    <div id="radar-off-hint" style="text-align:center;padding:14px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
+      Radar deaktiviert · Tippe AN zum Einschalten
+    </div>
+  </div>`;
+}
+
+let radarMap=null, radarLayer=null, radarFrames=[], radarAnimIdx=0, radarAnimTimer=null;
+
+function toggleRadar(){
+  const on = localStorage.getItem('ww_radar_on')==='1';
+  localStorage.setItem('ww_radar_on', on?'0':'1');
+  const wrap=document.getElementById('radar-map-wrap');
+  const hint=document.getElementById('radar-off-hint');
+  const btn=document.getElementById('radar-toggle-btn');
+  if(on){
+    // Ausschalten
+    wrap.style.height='0px';
+    hint.style.display='block';
+    btn.style.background='var(--b2)'; btn.style.color='var(--mu)'; btn.textContent='○ AUS';
+    if(radarAnimTimer){ clearInterval(radarAnimTimer); radarAnimTimer=null; }
+  } else {
+    // Einschalten
+    wrap.style.height='320px';
+    hint.style.display='none';
+    btn.style.background='#0369a1'; btn.style.color='#fff'; btn.textContent='● AN';
+    setTimeout(()=>{ initRadarMap(true); },420);
+  }
+}
+
+function initRadarMap(force=false){
+  const on = localStorage.getItem('ww_radar_on')==='1';
+  if(!on && !force) return;
+  if(radarMap){ if(!force) return; radarMap.remove(); radarMap=null; radarLayer=null; }
+  const mapDiv=document.getElementById('radar-map');
+  if(!mapDiv) return;
+
+  // Leaflet laden falls noch nicht da
+  if(!window.L){
+    const link=document.createElement('link');
+    link.rel='stylesheet'; link.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(link);
+    const script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    script.onload=()=>buildRadarMap(mapDiv);
+    document.head.appendChild(script);
+  } else {
+    buildRadarMap(mapDiv);
+  }
+}
+
+function buildRadarMap(mapDiv){
+  // Schluchsee koordinaten
+  const lat=47.818, lng=8.194;
+  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false}).setView([lat,lng],8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:13,opacity:0.7}).addTo(radarMap);
+
+  // Standort-Marker
+  L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3}).addTo(radarMap)
+   .bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
+
+  // RainViewer Radar-Layer laden
+  fetch('https://api.rainviewer.com/public/weather-maps.json')
+    .then(r=>r.json())
+    .then(data=>{
+      radarFrames=(data.radar?.past||[]).concat(data.radar?.nowcast||[]);
+      if(!radarFrames.length) return;
+      // Letzten Frame anzeigen
+      addRadarFrame(radarFrames.length-1);
+      // Animation starten
+      radarAnimIdx=0;
+      if(radarAnimTimer) clearInterval(radarAnimTimer);
+      radarAnimTimer=setInterval(()=>{
+        radarAnimIdx=(radarAnimIdx+1)%radarFrames.length;
+        addRadarFrame(radarAnimIdx);
+      },600);
+    })
+    .catch(()=>{});
+}
+
+function addRadarFrame(idx){
+  if(!radarMap||!radarFrames[idx]) return;
+  if(radarLayer){ radarMap.removeLayer(radarLayer); }
+  const path=radarFrames[idx].path;
+  radarLayer=L.tileLayer(`https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/2/1_1.png`,
+    {opacity:0.55,maxZoom:13,tileSize:256});
+  radarLayer.addTo(radarMap);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2352,6 +2581,7 @@ function restartAutoRefresh(){
 // INIT
 // ══════════════════════════════════════════════════════════════════
 applyTheme();
+applyWxColors();
 renderCards();
 renderChips();
 // Nach dem Laden sofort alte Sensorwerte anzeigen, bis neue Werte kommen.
