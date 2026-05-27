@@ -19,8 +19,8 @@
     name: "Wohnwagen Schluchsee",
     short_name: "Wohnwagen",
     description: "Temperatur, Wetter & Radar",
-    start_url: "/wohnwagen-dashboard/",
-    scope: "/wohnwagen-dashboard/",
+    start_url: "https://adolfboesch-rgb.github.io/wohnwagen-dashboard/",
+    scope: "https://adolfboesch-rgb.github.io/wohnwagen-dashboard/",
     display: "standalone",
     orientation: "any",
     background_color: "#bae6fd",
@@ -588,6 +588,38 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
   /* Radar kompakter */
   #radar-map-wrap{height:240px!important}
   #radar-map{height:240px!important}
+}
+
+/* Exakter Fix für ~945px breite Bildschirme (Laptop/Tablet-Fenster) */
+@media (max-width:980px) and (min-width:700px){
+  .grid{padding:6px 10px!important;gap:6px!important}
+  .header{padding:6px 12px!important}
+  #clock{font-size:clamp(28px,5vw,44px)!important}
+  #dateline{font-size:11px!important}
+  .sensor-row .card{height:120px!important;min-height:120px!important;max-height:120px!important;padding:9px 10px!important}
+  .sensor-row .mb{font-size:clamp(26px,4.5vw,38px)!important}
+  .sensor-row .mb2{font-size:clamp(22px,3.8vw,32px)!important}
+  #card-wetter.card{padding:8px 10px!important}
+  .wn{gap:8px!important;margin-bottom:4px!important}
+  .wi{font-size:clamp(28px,5vw,42px)!important}
+  .wt{font-size:clamp(28px,5.5vw,46px)!important}
+  .wd{font-size:10px!important}
+  .ws{gap:4px!important;margin-bottom:4px!important}
+  .wst{padding:4px 3px!important}
+  .wv{font-size:10px!important}
+  .wl{font-size:7px!important}
+  .sec-lbl{font-size:8px!important;margin-bottom:4px!important}
+  .hourly{gap:6px!important;margin-bottom:4px!important}
+  .hc{min-width:66px!important;min-height:74px!important;padding:5px!important}
+  .ht{font-size:9px!important}
+  .hi{font-size:19px!important;margin:3px 0!important}
+  .hv{font-size:12px!important}
+  .fc{gap:4px!important}
+  .fcd{min-height:58px!important;padding:4px 2px!important}
+  .fdi{font-size:15px!important}
+  .fdh{font-size:10px!important}
+  #radar-map-wrap{height:200px!important}
+  #radar-map{height:200px!important}
 }
 
 
