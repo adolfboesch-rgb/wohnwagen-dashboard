@@ -1939,8 +1939,8 @@ function initRadarMap(force=false){
 function buildRadarMap(mapDiv){
   // Schluchsee koordinaten
   const lat=47.818, lng=8.194;
-  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false}).setView([lat,lng],8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:13,opacity:0.7}).addTo(radarMap);
+  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false}).setView([lat,lng],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12,minZoom:1,opacity:0.7}).addTo(radarMap);
 
   // Standort-Marker
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3}).addTo(radarMap)
@@ -1969,8 +1969,8 @@ function addRadarFrame(idx){
   if(!radarMap||!radarFrames[idx]) return;
   if(radarLayer){ radarMap.removeLayer(radarLayer); }
   const path=radarFrames[idx].path;
-  radarLayer=L.tileLayer(`https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/2/1_1.png`,
-    {opacity:0.55,maxZoom:13,tileSize:256});
+  radarLayer=L.tileLayer(`https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/4/1_1.png`,
+    {opacity:0.6,maxZoom:12,minZoom:1,tileSize:256});
   radarLayer.addTo(radarMap);
 }
 
