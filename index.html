@@ -1941,24 +1941,33 @@ function buildRadarMap(mapDiv){
   radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false}).setView([lat,lng],7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,opacity:0.8}).addTo(radarMap);
 
-  // Standort-Marker
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3}).addTo(radarMap)
    .bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
 
-  // Windy Radar iframe overlay — zuverlässig, kein API-Key nötig
-  // Stattdessen: meteoblue Karten-Tile (kostenlos, kein Key)
-  radarLayer = L.tileLayer(
-    'https://maps.meteoblue.com/tiles/clouds_light/{z}/{x}/{y}.png?apikey=free',
-    {opacity:0.55, maxZoom:18, tileSize:256}
+  fetch('https://api.rainviewer.com/public/weather-maps.json')
+    .then(r=>r.json())
+    .then(data=>{
+      radarFrames=(data.radar?.past||[]).concat(data.radar?.nowcast||[]);
+      if(!radarFrames.length) return;
+      addRadarFrame(radarFrames.length-1);
+      radarAnimIdx=0;
+      if(radarAnimTimer) clearInterval(radarAnimTimer);
+      radarAnimTimer=setInterval(()=>{
+        radarAnimIdx=(radarAnimIdx+1)%radarFrames.length;
+        addRadarFrame(radarAnimIdx);
+      },700);
+    }).catch(()=>{});
+}
+
+function addRadarFrame(idx){
+  if(!radarMap||!radarFrames[idx]) return;
+  if(radarLayer){ radarMap.removeLayer(radarLayer); }
+  const path=radarFrames[idx].path;
+  radarLayer=L.tileLayer(
+    `https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/2/1_1.png`,
+    {opacity:0.6, tileSize:256, zoomOffset:0}
   );
   radarLayer.addTo(radarMap);
-
-  // Regen-Layer zusätzlich
-  const rainLayer = L.tileLayer(
-    'https://maps.meteoblue.com/tiles/precipitation_intensity/{z}/{x}/{y}.png?apikey=free',
-    {opacity:0.5, maxZoom:18, tileSize:256}
-  );
-  rainLayer.addTo(radarMap);
 }
 
 // ══════════════════════════════════════════════════════════════════
