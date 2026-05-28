@@ -22,8 +22,11 @@ html{filter:brightness(var(--brightness))}
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;align-items:stretch;
 }
+#wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+#wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
+.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
 html,body{
@@ -1732,8 +1735,8 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'220px':'0px'};transition:height .4s ease">
-      <div id="radar-map" style="width:100%;height:220px"></div>
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'260px':'0px'};transition:height .4s ease">
+      <div id="radar-map" style="width:100%;height:260px"></div>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
@@ -1756,7 +1759,7 @@ function toggleRadar(){
     if(radarAnimTimer){ clearInterval(radarAnimTimer); radarAnimTimer=null; }
     if(radarMap){ radarMap.remove(); radarMap=null; radarLayer=null; }
   } else {
-    wrap.style.height='220px'; hint.style.display='none';
+    wrap.style.height='260px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
     setTimeout(()=>{ initRadarMap(true); },420);
@@ -1782,11 +1785,10 @@ function initRadarMap(force=false){
 
 function buildRadarMap(mapDiv){
   const lat=47.818, lng=8.194;
-  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:10}).setView([lat,lng],9);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:10,opacity:0.8}).addTo(radarMap);
+  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9}).setView([lat,lng],8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:9,opacity:0.8}).addTo(radarMap);
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
-   .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',
-   className:'radar-lbl'});
+   .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
   fetch('https://api.rainviewer.com/public/weather-maps.json')
     .then(r=>r.json())
     .then(data=>{
@@ -1802,9 +1804,10 @@ function buildRadarMap(mapDiv){
 function addRadarFrame(idx){
   if(!radarMap||!radarFrames[idx]) return;
   if(radarLayer) radarMap.removeLayer(radarLayer);
+  // RainViewer unterstützt nur Zoom 1-6 für Radar-Tiles
   radarLayer=L.tileLayer(
     `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:10}
+    {opacity:0.7, tileSize:256, minZoom:4, maxNativeZoom:6, maxZoom:9}
   );
   radarLayer.addTo(radarMap);
 }
@@ -2429,7 +2432,7 @@ function autoScale(){
   const sbH    = 36;   // Status-Bar
   const sensH  = 170;  // Temperaturkarten
   const wetH   = 480;  // Wetterkarte
-  const radH   = radarOn ? 290 : 65; // Radar
+  const radH   = radarOn ? 320 : 65; // Radar
   const padH   = 40;   // Abstände
   const naturalH = hdrH + locH + sbH + sensH + wetH + radH + padH;
   let scale = (h * 0.99) / naturalH;
