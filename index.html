@@ -22,6 +22,7 @@ html{filter:brightness(var(--brightness))}
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
+  display:flex;flex-direction:column;align-items:center;
 }
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
@@ -56,7 +57,7 @@ html:fullscreen,body:fullscreen{
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 #wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
-.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;margin:0 auto}
+.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto}
 
 /* ── HEADER ── */
 .header{
@@ -1781,8 +1782,8 @@ function initRadarMap(force=false){
 
 function buildRadarMap(mapDiv){
   const lat=47.818, lng=8.194;
-  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:7}).setView([lat,lng],7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:7,opacity:0.8}).addTo(radarMap);
+  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:10}).setView([lat,lng],9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:10,opacity:0.8}).addTo(radarMap);
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
    .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',
    className:'radar-lbl'});
@@ -1803,7 +1804,7 @@ function addRadarFrame(idx){
   if(radarLayer) radarMap.removeLayer(radarLayer);
   radarLayer=L.tileLayer(
     `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:7}
+    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:10}
   );
   radarLayer.addTo(radarMap);
 }
