@@ -1785,10 +1785,19 @@ function initRadarMap(force=false){
 
 function buildRadarMap(mapDiv){
   const lat=47.818, lng=8.194;
-  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9}).setView([lat,lng],8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:9,opacity:0.8}).addTo(radarMap);
+  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9}).setView([lat,lng],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:9,opacity:0.8}).addTo(radarMap);
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
    .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
+
+  // Radar-Layer bei Zoom>6 ausblenden (RainViewer limit)
+  radarMap.on('zoomend',()=>{
+    if(radarLayer){
+      if(radarMap.getZoom()>6){ radarMap.removeLayer(radarLayer); }
+      else { if(!radarMap.hasLayer(radarLayer)) radarLayer.addTo(radarMap); }
+    }
+  });
+
   fetch('https://api.rainviewer.com/public/weather-maps.json')
     .then(r=>r.json())
     .then(data=>{
@@ -1804,12 +1813,12 @@ function buildRadarMap(mapDiv){
 function addRadarFrame(idx){
   if(!radarMap||!radarFrames[idx]) return;
   if(radarLayer) radarMap.removeLayer(radarLayer);
-  // RainViewer unterstützt nur Zoom 1-6 für Radar-Tiles
   radarLayer=L.tileLayer(
     `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7, tileSize:256, minZoom:4, maxNativeZoom:6, maxZoom:9}
+    {opacity:0.7, tileSize:256, minZoom:4, maxZoom:6}
   );
-  radarLayer.addTo(radarMap);
+  // Nur hinzufügen wenn Zoom ≤ 6
+  if(radarMap.getZoom()<=6) radarLayer.addTo(radarMap);
 }
 
 // ══════════════════════════════════════════════════════════════════
