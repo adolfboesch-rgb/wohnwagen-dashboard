@@ -4,82 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Wohnwagen">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#bae6fd">
-<meta name="application-name" content="Wohnwagen Schluchsee">
-<meta name="description" content="Wohnwagen Monitoring – Temperatur, Wetter, Radar">
-<link id="pwa-manifest" rel="manifest">
 <title>🏕️ Wohnwagen Schluchsee</title>
-<script>
-// Inline PWA Manifest – kein externes manifest.json nötig
-(function(){
-  const manifest = {
-    name: "Wohnwagen Schluchsee",
-    short_name: "Wohnwagen",
-    description: "Temperatur, Wetter & Radar",
-    start_url: "https://adolfboesch-rgb.github.io/wohnwagen-dashboard/",
-    scope: "https://adolfboesch-rgb.github.io/wohnwagen-dashboard/",
-    display: "standalone",
-    orientation: "any",
-    background_color: "#bae6fd",
-    theme_color: "#bae6fd",
-    icons: [
-      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏕️</text></svg>", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }
-    ]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').href = url;
-})();
-</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --ac:#0369a1;--ac2:#6366f1;--warm:#ea580c;--green:#059669;
-  --red:#dc2626;--yel:#d97706;--rain:#38bdf8;--tx:#0c2340;--mu:#4a7a9b;
-  --card:rgba(186,230,253,.70);--card2:rgba(186,230,253,.85);
-  --b2:rgba(3,105,161,.12);--b3:rgba(3,105,161,.25);
+  --ac:#38bdf8;--ac2:#818cf8;--warm:#fb923c;--green:#34d399;
+  --red:#f87171;--yel:#fbbf24;--rain:#7dd3fc;--tx:#e2e8f0;--mu:#4b6070;
+  --card:rgba(10,18,35,.75);--card2:rgba(15,25,45,.85);
+  --b2:rgba(255,255,255,.07);--b3:rgba(56,189,248,.15);
   --mono:'Space Mono',monospace;--sans:'Syne',sans-serif;
-  --brightness:1;--bg-hex:#bae6fd;--bg-rgb:186,230,253;
-  --wx-card:rgba(255,255,255,.08);--wx-temp:#0c2340;--wx-val:#0369a1;--wx-hv:#0c2340;--wx-icon-br:1;
+  --brightness:1;--bg-hex:#060d1a;--bg-rgb:6,13,26;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{filter:brightness(var(--brightness))}
 
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
-  overflow-x:hidden;position:relative;background:var(--bg-hex,#bae6fd);
+  overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
 }
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
 html,body{
   scrollbar-width:thin;
-  scrollbar-color:var(--bg-hex,#bae6fd) var(--bg-hex,#bae6fd);
-  background:var(--bg-hex,#bae6fd);
+  scrollbar-color:var(--bg-hex,#060d1a) var(--bg-hex,#060d1a);
+  background:var(--bg-hex,#060d1a);
 }
 html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{
   width:14px;
   height:0;
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,*::-webkit-scrollbar-track{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,*::-webkit-scrollbar-thumb{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
   border:0;
 }
 html::-webkit-scrollbar-corner,body::-webkit-scrollbar-corner,*::-webkit-scrollbar-corner{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 
 /* Im echten Browser-Fullscreen keine helle Scrollbar */
 html:fullscreen,body:fullscreen{
   overflow-y:auto;
-  background:var(--bg-hex,#bae6fd);
-  scrollbar-color:var(--bg-hex,#bae6fd) var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
+  scrollbar-color:var(--bg-hex,#060d1a) var(--bg-hex,#060d1a);
 }
 
 /* ── CANVAS BACKGROUND ── */
@@ -91,7 +62,7 @@ html:fullscreen,body:fullscreen{
 .header{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 16px 10px;border-bottom:1px solid var(--b2);
-  position:sticky;top:0;background:rgba(var(--bg-rgb,186,230,253),.88);
+  position:sticky;top:0;background:rgba(var(--bg-rgb,6,13,26),.88);
   backdrop-filter:blur(20px);z-index:20;gap:8px;flex-wrap:wrap;
 }
 .logo{display:flex;align-items:center;gap:8px}
@@ -136,7 +107,7 @@ html.rotated{
 .sp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
   display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
 .sp-overlay.open{display:flex}
-.sp-panel{background:rgba(var(--bg-rgb,186,230,253),.97);border-radius:22px 22px 0 0;padding:24px 20px 40px;
+.sp-panel{background:rgba(var(--bg-rgb,6,13,26),.97);border-radius:22px 22px 0 0;padding:24px 20px 40px;
   width:100%;max-width:580px;max-height:90vh;overflow-y:auto;
   border-top:1px solid var(--b3);animation:sup .3s ease}
 @keyframes sup{from{transform:translateY(100%)}to{transform:none}}
@@ -194,7 +165,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* ── LOCATION BAR ── */
 .loc-bar{padding:10px 14px 8px;border-bottom:1px solid var(--b2);
-  background:rgba(var(--bg-rgb,186,230,253),.6);backdrop-filter:blur(10px)}
+  background:rgba(var(--bg-rgb,6,13,26),.6);backdrop-filter:blur(10px)}
 .loc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .lc{display:flex;align-items:center;gap:5px;padding:6px 10px;
   background:rgba(255,255,255,.06);border:1px solid var(--b2);border-radius:16px;
@@ -212,7 +183,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
   font-family:var(--mono);font-size:11px;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .loc-add:hover{background:rgba(56,189,248,.25)}
 .loc-dd{position:absolute;top:calc(100% + 4px);left:0;right:80px;
-  background:rgba(var(--bg-rgb,186,230,253),.98);border:1px solid var(--b3);border-radius:10px;
+  background:rgba(var(--bg-rgb,6,13,26),.98);border:1px solid var(--b3);border-radius:10px;
   overflow:hidden;z-index:50;display:none;max-height:180px;overflow-y:auto;backdrop-filter:blur(10px)}
 .loc-ddi{padding:9px 12px;font-size:12px;cursor:pointer;color:var(--tx);font-family:var(--mono);
   border-bottom:1px solid var(--b2);transition:background .15s}
@@ -220,7 +191,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .loc-ddi:last-child{border-bottom:none}
 
 /* ── GRID ── */
-.grid{display:flex;flex-direction:column;gap:10px;padding:12px;max-width:1400px;margin:0 auto;width:100%}
+.grid{display:flex;flex-direction:column;gap:10px;padding:12px}
 .sensor-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
 
 /* TABLET: 3 columns side by side */
@@ -308,34 +279,34 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* ── WEATHER ── */
 .wn{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
-.wi{font-size:clamp(48px,10vw,68px);line-height:1;filter:drop-shadow(0 0 20px rgba(56,189,248,.3)) brightness(var(--wx-icon-br))}
-.wt{font-family:var(--mono);font-size:clamp(40px,10vw,62px);font-weight:700;line-height:1;color:var(--wx-temp)}
+.wi{font-size:clamp(48px,10vw,68px);line-height:1;filter:drop-shadow(0 0 20px rgba(56,189,248,.3))}
+.wt{font-family:var(--mono);font-size:clamp(40px,10vw,62px);font-weight:700;line-height:1}
 .wt .u{font-size:.44em;color:var(--mu)}
 .wd{font-size:12px;color:var(--mu);margin-top:4px}
 .ws{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
 @media(min-width:500px){.ws{grid-template-columns:repeat(6,1fr)}}
-.wst{background:var(--wx-card);border:1px solid var(--b2);border-radius:9px;padding:9px 6px;text-align:center}
-.wv{font-family:var(--mono);font-size:clamp(12px,2.5vw,15px);font-weight:700;color:var(--wx-val)}
+.wst{background:rgba(255,255,255,.05);border:1px solid var(--b2);border-radius:9px;padding:9px 6px;text-align:center}
+.wv{font-family:var(--mono);font-size:clamp(12px,2.5vw,15px);font-weight:700;color:var(--ac)}
 .wl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
 .sec-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;font-family:var(--mono)}
 .hourly{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;
   scrollbar-width:none;scrollbar-color:transparent transparent}
 .hourly::-webkit-scrollbar{height:0;display:none}
 .hourly::-webkit-scrollbar-thumb{background:transparent;border-radius:2px}
-.hc{flex-shrink:0;background:var(--wx-card);border:1px solid var(--b2);border-radius:12px;padding:10px 9px;text-align:center;min-width:62px}
+.hc{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:12px;padding:10px 9px;text-align:center;min-width:62px}
 .hc.now{border-color:var(--green);background:rgba(52,211,153,.08)}
 .ht{font-family:var(--mono);font-size:10px;color:var(--mu)}
 .hc.now .ht{color:var(--green)}
-.hi{font-size:22px;margin:5px 0;filter:brightness(var(--wx-icon-br))}
-.hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--wx-hv)}
+.hi{font-size:22px;margin:5px 0}
+.hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--tx)}
 .hr{font-size:10px;color:var(--rain);font-family:var(--mono);margin-top:2px}
 .fc{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 @media(max-width:450px){.fc{grid-template-columns:repeat(4,1fr)}.fcd:nth-child(n+5){display:none}}
-.fcd{background:var(--wx-card);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
+.fcd{background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
 .fcd.today{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.08)}
 .fdn{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu)}
 .fcd.today .fdn{color:var(--ac)}
-.fdi{font-size:18px;margin:3px 0;filter:brightness(var(--wx-icon-br))}
+.fdi{font-size:18px;margin:3px 0}
 .fdh{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
 .fdl{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:1px}
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
@@ -390,7 +361,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 /* ── STATUS BAR ── */
 .sb{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;
   border-top:1px solid var(--b2);font-family:var(--mono);font-size:9px;color:var(--mu);
-  flex-wrap:wrap;gap:6px;background:rgba(var(--bg-rgb,186,230,253),.88);backdrop-filter:blur(10px)}
+  flex-wrap:wrap;gap:6px;background:rgba(var(--bg-rgb,6,13,26),.88);backdrop-filter:blur(10px)}
 .ok{color:var(--green)}.er{color:var(--red)}
 .rbtn{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);color:var(--ac);
   font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:7px;cursor:pointer;transition:all .2s}
@@ -423,10 +394,10 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .sun-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--warm);letter-spacing:1px}
 .sun-lbl{font-family:var(--mono);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px}
 .sun-sep{width:1px;height:36px;background:var(--b2);margin:0 12px}
-::-webkit-scrollbar { width:14px !important; background:var(--bg-hex,#bae6fd); }
-::-webkit-scrollbar-track { background:var(--bg-hex,#bae6fd); }
-::-webkit-scrollbar-thumb { background:var(--bg-hex,#bae6fd); border:0 !important; }
-::-webkit-scrollbar-corner { background:var(--bg-hex,#bae6fd); }
+::-webkit-scrollbar { width:14px !important; background:var(--bg-hex,#060d1a); }
+::-webkit-scrollbar-track { background:var(--bg-hex,#060d1a); }
+::-webkit-scrollbar-thumb { background:var(--bg-hex,#060d1a); border:0 !important; }
+::-webkit-scrollbar-corner { background:var(--bg-hex,#060d1a); }
 
 
 /* FINALE TABLET-FIT: Wetter + 7 Tage sollen im Vollbild sichtbar bleiben */
@@ -449,9 +420,9 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 }
 
 /* Scrollbalken im Vollbild optisch unauffällig */
-html::-webkit-scrollbar, body::-webkit-scrollbar { width:10px !important; background:var(--bg-hex,#bae6fd); }
-html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background:var(--bg-hex,#bae6fd); }
-html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background:var(--bg-hex,#bae6fd); border:0 !important; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width:10px !important; background:var(--bg-hex,#060d1a); }
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background:var(--bg-hex,#060d1a); }
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb { background:var(--bg-hex,#060d1a); border:0 !important; }
 
 
 
@@ -464,16 +435,14 @@ html, body{
   width:100%;
   max-width:100vw;
   min-height:100vh;
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
   overflow-x:hidden !important;
-  scrollbar-color:var(--bg-hex,#bae6fd) var(--bg-hex,#bae6fd) !important;
+  scrollbar-color:var(--bg-hex,#060d1a) var(--bg-hex,#060d1a) !important;
 }
-
-/* Auto-Scale wird per JS gesetzt — siehe autoScale() */
-body::-webkit-scrollbar, html::-webkit-scrollbar{width:10px;background:var(--bg-hex,#bae6fd)}
-body::-webkit-scrollbar-track, html::-webkit-scrollbar-track{background:var(--bg-hex,#bae6fd)}
-body::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb{background:var(--bg-hex,#bae6fd);border:0!important}
-body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--bg-hex,#bae6fd)}
+body::-webkit-scrollbar, html::-webkit-scrollbar{width:10px;background:var(--bg-hex,#060d1a)}
+body::-webkit-scrollbar-track, html::-webkit-scrollbar-track{background:var(--bg-hex,#060d1a)}
+body::-webkit-scrollbar-thumb, html::-webkit-scrollbar-thumb{background:var(--bg-hex,#060d1a);border:0!important}
+body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--bg-hex,#060d1a)}
 
 @media (min-width:768px){
   .grid{max-width:1600px!important;padding:14px 18px 10px!important;gap:8px!important}
@@ -525,9 +494,7 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
   .sensor-row .br{margin-top:6px!important;padding-top:5px!important}
   .sensor-row .ls{font-size:7px!important;margin-top:2px!important}
 
-  #card-radar.card{padding:12px!important}
-.radar-lbl{background:#0369a1!important;color:#fff!important;border:none!important;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
-.radar-lbl::before{border-right-color:#0369a1!important}
+  #card-wetter.card{padding:10px 12px!important;border-radius:16px!important;min-height:auto!important}
   #card-wetter .ch{margin-bottom:6px!important}
   .wn{gap:10px!important;margin-bottom:5px!important}
   .wi{font-size:clamp(34px,4.2vw,50px)!important}
@@ -566,62 +533,6 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
   .hi{font-size:21px!important}
   .hv{font-size:14px!important}
   .fcd{min-height:60px!important;padding:5px 2px!important}
-  /* Radar kleiner auf kleinen Höhen */
-  #radar-map-wrap{height:220px!important}
-  #radar-map{height:220px!important}
-}
-
-/* Laptop fix: breiter Bildschirm, mittlere Höhe */
-@media (min-width:1100px) and (max-height:850px){
-  .grid{padding:6px 14px 6px!important;gap:6px!important}
-  #card-wetter.card{padding:8px 12px!important}
-  .wi{font-size:clamp(30px,3.5vw,46px)!important}
-  .wt{font-size:clamp(30px,4vw,50px)!important}
-  .ws{gap:5px!important;margin-bottom:5px!important}
-  .wst{padding:4px!important}
-  .wv{font-size:11px!important}
-  .hourly{gap:7px!important;margin-bottom:5px!important}
-  .hc{min-width:72px!important;min-height:78px!important;padding:6px!important}
-  .hi{font-size:20px!important}
-  .hv{font-size:13px!important}
-  .fc{gap:5px!important}
-  .fcd{min-height:62px!important;padding:5px 2px!important}
-  .fdi{font-size:16px!important}
-  /* Radar kompakter */
-  #radar-map-wrap{height:240px!important}
-  #radar-map{height:240px!important}
-}
-
-/* Exakter Fix für ~945px breite Bildschirme (Laptop/Tablet-Fenster) */
-@media (max-width:980px) and (min-width:700px){
-  .grid{padding:6px 10px!important;gap:6px!important}
-  .header{padding:6px 12px!important}
-  #clock{font-size:clamp(28px,5vw,44px)!important}
-  #dateline{font-size:11px!important}
-  .sensor-row .card{height:120px!important;min-height:120px!important;max-height:120px!important;padding:9px 10px!important}
-  .sensor-row .mb{font-size:clamp(26px,4.5vw,38px)!important}
-  .sensor-row .mb2{font-size:clamp(22px,3.8vw,32px)!important}
-  #card-wetter.card{padding:8px 10px!important}
-  .wn{gap:8px!important;margin-bottom:4px!important}
-  .wi{font-size:clamp(28px,5vw,42px)!important}
-  .wt{font-size:clamp(28px,5.5vw,46px)!important}
-  .wd{font-size:10px!important}
-  .ws{gap:4px!important;margin-bottom:4px!important}
-  .wst{padding:4px 3px!important}
-  .wv{font-size:10px!important}
-  .wl{font-size:7px!important}
-  .sec-lbl{font-size:8px!important;margin-bottom:4px!important}
-  .hourly{gap:6px!important;margin-bottom:4px!important}
-  .hc{min-width:66px!important;min-height:74px!important;padding:5px!important}
-  .ht{font-size:9px!important}
-  .hi{font-size:19px!important;margin:3px 0!important}
-  .hv{font-size:12px!important}
-  .fc{gap:4px!important}
-  .fcd{min-height:58px!important;padding:4px 2px!important}
-  .fdi{font-size:15px!important}
-  .fdh{font-size:10px!important}
-  #radar-map-wrap{height:200px!important}
-  #radar-map{height:200px!important}
 }
 
 
@@ -775,27 +686,27 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
 }
 
 html,body{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
   overflow-x:hidden !important;
-  scrollbar-color:var(--bg-hex,#bae6fd) var(--bg-hex,#bae6fd) !important;
+  scrollbar-color:var(--bg-hex,#060d1a) var(--bg-hex,#060d1a) !important;
 }
 
 ::-webkit-scrollbar{
   width:8px !important;
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 
 ::-webkit-scrollbar-track{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 
 ::-webkit-scrollbar-thumb{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
   border:0 !important;
 }
 
 ::-webkit-scrollbar-corner{
-  background:var(--bg-hex,#bae6fd);
+  background:var(--bg-hex,#060d1a);
 }
 
 </style>
@@ -828,10 +739,10 @@ html,body{
 
       <div class="palette-title">Freie Farbe</div>
       <div class="color-tools">
-        <input class="color-picker-big" type="color" id="color-picker" value="#bae6fd" oninput="setHexColor(this.value)">
+        <input class="color-picker-big" type="color" id="color-picker" value="#060d1a" oninput="setHexColor(this.value)">
         <div>
           <div class="color-inputs">
-            <input id="hex-input" value="#bae6fd" maxlength="7" oninput="setHexColor(this.value)" title="HEX Farbe">
+            <input id="hex-input" value="#060d1a" maxlength="7" oninput="setHexColor(this.value)" title="HEX Farbe">
             <input id="rgb-r" type="number" min="0" max="255" value="6" oninput="setRgbColor()" title="Rot">
             <input id="rgb-g" type="number" min="0" max="255" value="13" oninput="setRgbColor()" title="Grün">
             <input id="rgb-b" type="number" min="0" max="255" value="26" oninput="setRgbColor()" title="Blau">
@@ -852,53 +763,7 @@ html,body{
     </div>
 
     <div class="sp-sec">
-      <div class="sp-lbl">🌤 Wetterfarben</div>
-      <div style="display:grid;gap:10px;font-family:var(--mono);font-size:11px">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--tx)">🌡 Grosse Temperatur</span>
-          <input type="color" id="wx-temp-pick" value="#0c2340" oninput="setWxColor('temp',this.value)"
-            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--tx)">🕐 Stunden-/Tagestemperatur</span>
-          <input type="color" id="wx-hv-pick" value="#0c2340" oninput="setWxColor('hv',this.value)"
-            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--tx)">💨 Werte (Wind, Druck…)</span>
-          <input type="color" id="wx-val-pick" value="#0369a1" oninput="setWxColor('val',this.value)"
-            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--tx)">🟦 Karten-Hintergrund</span>
-          <input type="color" id="wx-card-pick" value="#ffffff" oninput="setWxColor('card',this.value)"
-            style="width:44px;height:30px;border:none;border-radius:8px;cursor:pointer;background:none">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--mu);font-size:10px">Karten-Transparenz</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input type="range" id="wx-alpha-sl" min="0" max="100" value="8"
-              oninput="setWxAlpha(this.value)" style="width:100px">
-            <span id="wx-alpha-val" style="color:var(--tx);min-width:30px">8%</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <span style="color:var(--mu);font-size:10px">🌤 Icon-Helligkeit</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px">🌑</span>
-            <input type="range" id="wx-icon-sl" min="30" max="300" value="100"
-              oninput="setWxIconBr(this.value)" style="width:100px">
-            <span style="font-size:12px">☀️</span>
-            <span id="wx-icon-val" style="color:var(--tx);min-width:35px">100%</span>
-          </div>
-        </div>
-        <button onclick="resetWxColors()"
-          style="margin-top:4px;padding:6px 14px;background:var(--b2);border:1px solid var(--b3);
-          border-radius:8px;color:var(--mu);font-family:var(--mono);font-size:10px;cursor:pointer">
-          ↺ Wetterfarben zurücksetzen
-        </button>
-      </div>
-    </div>
+      <div class="sp-lbl">☀️ Helligkeit</div>
       <div class="sl-row">
         <span class="sl-ico">🌑</span>
         <input type="range" id="bright-sl" min="30" max="150" value="100" oninput="setBright(this.value)">
@@ -945,7 +810,7 @@ html,body{
           <input class="plug-inp" id="shelly-key" type="password" placeholder="Shelly Cloud Auth Key"
             oninput="savePlug()"></div>
         <div class="plug-row"><label class="plug-lbl">Device ID</label>
-          <input class="plug-inp" id="shelly-dev" type="text" placeholder="7c2c6768d8b4"
+          <input class="plug-inp" id="shelly-dev" type="text" placeholder="z.B. shellyplug-s-XXXXXX"
             oninput="savePlug()"></div>
         <div class="plug-row"><label class="plug-lbl">Server</label>
           <input class="plug-inp" id="shelly-srv" type="text" placeholder="shelly-103eu.shelly.cloud"
@@ -1043,15 +908,13 @@ const AUTH  = 'MTBlYjk0dWlk3F27866A3E243F44467066199D14C9FDDC950479C48626129D18A
 const PROXY = 'https://solitary-haze-e0d5.adolf-boesch.workers.dev';
 const CLOUD = 'shelly-71-eu.shelly.cloud';
 
-// Geräte – IDs geprüft am 25.05.2026
+// Geräte: BLU HT (Bluetooth, via Cloud) – IDs geprüft am 19.05.2026
 const DEVICES = {
-  // Shelly H&T G3 Sensoren – lokal + Cloud
-  blu1:   { id:'543204576ac4', ids:['543204576ac4'], localIp:'10.10.20.76',  label:'Vorbau Wohnwagen Raumtemperatur',  icon:'❄️', acc:'ap', tag:'H&T G3' },
-  blu2:   { id:'54320457aee8', ids:['54320457aee8'], localIp:'10.10.20.209', label:'Wohnwagen Raumtemperatur',          icon:'🏠', acc:'ao', tag:'H&T G3' },
-  // BLU HT Sensor – über Cloud
+  // BLU HT Sensoren – über Cloud
+  blu1:   { id:'XB137192906687768', ids:['XB137192906687768'], localIp:null, label:'Raumtemperatur Vorbau',    icon:'❄️', acc:'ap', tag:'BLU HT' },
+  blu2:   { id:'XB137192906397952', ids:['XB137192906397952'], localIp:null, label:'Raumtemperatur Wohnwagen', icon:'🏠', acc:'ao', tag:'BLU HT' },
   aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',          icon:'🌿', acc:'as', tag:'BLU HT' },
   wetter: { id:'wetter',            localIp:null, label:'Wetter',                   icon:'🌍', acc:'as', tag:''       },
-  radar:  { id:'radar',             localIp:null, label:'Wetterradar',               icon:'🛰️', acc:'as', tag:''       },
 };
 
 const DEFAULT_LOCS = [
@@ -1061,7 +924,7 @@ const DEFAULT_LOCS = [
 
 const COLOR_PRESETS = [
   // ── Sehr dunkel (OLED/Tablet-optimiert) ──
-  {name:'OLED Schwarz',hex:'#000000'}, {name:'Nacht Blau',hex:'#bae6fd'},
+  {name:'OLED Schwarz',hex:'#000000'}, {name:'Nacht Blau',hex:'#060d1a'},
   {name:'Samsung Dunkel',hex:'#08111f'}, {name:'Anthrazit',hex:'#111111'},
   {name:'Petrol',hex:'#0b2b2e'}, {name:'Ozean',hex:'#08283d'},
   {name:'Tiefblau',hex:'#071a3a'}, {name:'Violett',hex:'#1d0b2e'},
@@ -1137,58 +1000,13 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // ══════════════════════════════════════════════════════════════════
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
-let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || {name:'Hellblau',hex:'#bae6fd'};
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
+let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
 let ssTimerMins  = parseInt(localStorage.getItem('ww_ss_v5')||'0');
 const lastKnown  = JSON.parse(localStorage.getItem('ww_last_sensor_cache_v6')||'{}');
 let currentWxCode = 0;
-
-// Wetterfarben
-const WX_DEFAULTS = { temp:'#0c2340', hv:'#0c2340', val:'#0369a1', cardHex:'#ffffff', cardAlpha:8, iconBr:100 };
-let wxColors = JSON.parse(localStorage.getItem('ww_wx_colors_v1')||'null') || {...WX_DEFAULTS};
-function saveWxColors(){ localStorage.setItem('ww_wx_colors_v1', JSON.stringify(wxColors)); }
-function applyWxColors(){
-  const r = document.documentElement.style;
-  r.setProperty('--wx-temp', wxColors.temp);
-  r.setProperty('--wx-hv',   wxColors.hv);
-  r.setProperty('--wx-val',  wxColors.val);
-  const a = (wxColors.cardAlpha||8)/100;
-  const h = wxColors.cardHex||'#ffffff';
-  const rgb = hexToRgb(h);
-  if(rgb) r.setProperty('--wx-card', `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`);
-  r.setProperty('--wx-icon-br', ((wxColors.iconBr||100)/100).toFixed(2));
-}
-function setWxColor(key, val){
-  if(key==='temp') wxColors.temp=val;
-  else if(key==='hv') wxColors.hv=val;
-  else if(key==='val') wxColors.val=val;
-  else if(key==='card') wxColors.cardHex=val;
-  saveWxColors(); applyWxColors();
-}
-function setWxAlpha(val){
-  wxColors.cardAlpha=parseInt(val);
-  document.getElementById('wx-alpha-val').textContent=val+'%';
-  saveWxColors(); applyWxColors();
-}
-function setWxIconBr(val){
-  wxColors.iconBr=parseInt(val);
-  document.getElementById('wx-icon-val').textContent=val+'%';
-  saveWxColors(); applyWxColors();
-}
-function resetWxColors(){
-  wxColors={...WX_DEFAULTS}; saveWxColors(); applyWxColors(); loadWxColorPickers();
-}
-function loadWxColorPickers(){
-  const s=id=>{const e=document.getElementById(id);return e;};
-  if(s('wx-temp-pick')) s('wx-temp-pick').value=wxColors.temp;
-  if(s('wx-hv-pick'))   s('wx-hv-pick').value=wxColors.hv;
-  if(s('wx-val-pick'))  s('wx-val-pick').value=wxColors.val;
-  if(s('wx-card-pick')) s('wx-card-pick').value=wxColors.cardHex||'#ffffff';
-  if(s('wx-alpha-sl'))  { s('wx-alpha-sl').value=wxColors.cardAlpha||8; s('wx-alpha-val').textContent=(wxColors.cardAlpha||8)+'%'; }
-  if(s('wx-icon-sl'))   { s('wx-icon-sl').value=wxColors.iconBr||100; s('wx-icon-val').textContent=(wxColors.iconBr||100)+'%'; }
-}
 
 function saveLocs()  { localStorage.setItem('ww_locs_v5',   JSON.stringify(savedLocs)); }
 function saveActive(){ localStorage.setItem('ww_active_v5', JSON.stringify(activeLoc)); }
@@ -1627,29 +1445,6 @@ function applyBurnInShift(){
 setInterval(applyBurnInShift,45000);
 applyBurnInShift();
 
-// Burn-In Schutz: sanfter Farbwechsel alle 3 Minuten
-// Hellt die Basisfarbe leicht auf/ab und verschiebt den Farbton minimal
-function applyBurnInColorShift(){
-  try {
-    const hex = colorToHex(bgColor);
-    const rgb = hexToRgb(hex);
-    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    const t = Date.now();
-    // Helligkeit ±6%, Farbton ±8 Grad, Sättigung ±5% — unmerklich aber wirksam
-    const lShift = Math.sin(t / 420000) * 6;
-    const hShift = Math.sin(t / 670000) * 8;
-    const sShift = Math.cos(t / 530000) * 5;
-    const newL = Math.max(5, Math.min(95, hsl.l + lShift));
-    const newH = ((hsl.h + hShift) + 360) % 360;
-    const newS = Math.max(10, Math.min(100, hsl.s + sShift));
-    const shifted = hslToRgb(newH, newS, newL);
-    const shiftedHex = rgbToHex(shifted.r, shifted.g, shifted.b);
-    setDocumentBg(shiftedHex);
-  } catch(e) {}
-}
-setInterval(applyBurnInColorShift, 3 * 60 * 1000);
-applyBurnInColorShift();
-
 function updateSSTemps(){
   const t=document.getElementById('ss-temps');
   const entries=Object.entries(lastKnown).filter(([,v])=>v&&v.temp!==null);
@@ -1791,7 +1586,6 @@ function openSP(){
   document.getElementById('hue-sl').value=hsl.h||220;
   document.getElementById('ss-sl').value=ssTimerMins;
   document.getElementById('ss-val').textContent=ssTimerMins===0?'Aus':ssTimerMins+' Min';
-  loadWxColorPickers();
   document.getElementById('sp-overlay').classList.add('open');
 }
 function closeSP(e){ if(e.target===document.getElementById('sp-overlay')) closeSPBtn(); }
@@ -1882,18 +1676,12 @@ function dDrop(e) {
 function renderCards(){
   const container=document.getElementById('card-container');
   const specialKeys=['wetter','radar'];
-  const sensors=cardOrder.filter(k=>!specialKeys.includes(k));
-  
-  // Build ordered list preserving position of special cards
-  let html='';
-  let sensorBuf=[];
+  let html='', sensorBuf=[];
   for(const k of cardOrder){
-    if(k==='wetter'||k==='radar'){
+    if(specialKeys.includes(k)){
       if(sensorBuf.length){ html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`; sensorBuf=[]; }
       html+= k==='wetter' ? renderWeatherCard() : renderRadarCard();
-    } else {
-      sensorBuf.push(k);
-    }
+    } else { sensorBuf.push(k); }
   }
   if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
   container.innerHTML=html;
@@ -1936,8 +1724,10 @@ function renderRadarCard(){
       <div class="ct">Wetterradar</div>
       <div class="tag">RainViewer</div>
       <button id="radar-toggle-btn" onclick="toggleRadar()"
-        style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:700;
-        background:${radarOn?'#0369a1':'var(--b2)'};color:${radarOn?'#fff':'var(--mu)'}">
+        style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
+        font-family:var(--mono);font-size:11px;font-weight:700;
+        background:${radarOn?'#0369a1':'rgba(255,255,255,0.08)'};
+        color:${radarOn?'#fff':'var(--mu)'}">
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
@@ -1947,7 +1737,8 @@ function renderRadarCard(){
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
     </div>
-  </div>`;}
+  </div>`;
+}
 
 let radarMap=null, radarLayer=null, radarFrames=[], radarAnimIdx=0, radarAnimTimer=null;
 
@@ -1956,30 +1747,27 @@ function toggleRadar(){
   localStorage.setItem('ww_radar_on', on?'0':'1');
   const wrap=document.getElementById('radar-map-wrap');
   const hint=document.getElementById('radar-off-hint');
-  const btn=document.getElementById('radar-toggle-btn');
+  const btn =document.getElementById('radar-toggle-btn');
   if(on){
-    wrap.style.height='0px';
-    hint.style.display='block';
-    btn.style.background='var(--b2)'; btn.style.color='var(--mu)'; btn.textContent='○ Einblenden';
+    wrap.style.height='0px'; hint.style.display='block';
+    btn.style.background='rgba(255,255,255,0.08)'; btn.style.color='var(--mu)';
+    btn.textContent='○ Einblenden';
     if(radarAnimTimer){ clearInterval(radarAnimTimer); radarAnimTimer=null; }
     if(radarMap){ radarMap.remove(); radarMap=null; radarLayer=null; }
-    autoScale();
   } else {
-    wrap.style.height='220px';
-    hint.style.display='none';
-    btn.style.background='#0369a1'; btn.style.color='#fff'; btn.textContent='● Ausblenden';
-    setTimeout(()=>{ initRadarMap(true); autoScale(); },420);
+    wrap.style.height='220px'; hint.style.display='none';
+    btn.style.background='#0369a1'; btn.style.color='#fff';
+    btn.textContent='● Ausblenden';
+    setTimeout(()=>{ initRadarMap(true); },420);
   }
+  setTimeout(autoScale, 500);
 }
 
 function initRadarMap(force=false){
   const on = localStorage.getItem('ww_radar_on')==='1';
   if(!on && !force) return;
   if(radarMap){ if(!force) return; radarMap.remove(); radarMap=null; radarLayer=null; }
-  const mapDiv=document.getElementById('radar-map');
-  if(!mapDiv) return;
-
-  // Leaflet laden falls noch nicht da
+  const mapDiv=document.getElementById('radar-map'); if(!mapDiv) return;
   if(!window.L){
     const link=document.createElement('link');
     link.rel='stylesheet'; link.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -1988,19 +1776,16 @@ function initRadarMap(force=false){
     script.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
     script.onload=()=>buildRadarMap(mapDiv);
     document.head.appendChild(script);
-  } else {
-    buildRadarMap(mapDiv);
-  }
+  } else { buildRadarMap(mapDiv); }
 }
 
 function buildRadarMap(mapDiv){
   const lat=47.818, lng=8.194;
-  radarMap = L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:7}).setView([lat,lng],7);
+  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:7}).setView([lat,lng],7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{minZoom:4,maxZoom:7,opacity:0.8}).addTo(radarMap);
-
-  L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3}).addTo(radarMap)
-   .bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
-
+  L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
+   .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',
+   className:'radar-lbl'});
   fetch('https://api.rainviewer.com/public/weather-maps.json')
     .then(r=>r.json())
     .then(data=>{
@@ -2009,20 +1794,16 @@ function buildRadarMap(mapDiv){
       addRadarFrame(radarFrames.length-1);
       radarAnimIdx=0;
       if(radarAnimTimer) clearInterval(radarAnimTimer);
-      radarAnimTimer=setInterval(()=>{
-        radarAnimIdx=(radarAnimIdx+1)%radarFrames.length;
-        addRadarFrame(radarAnimIdx);
-      },700);
+      radarAnimTimer=setInterval(()=>{ radarAnimIdx=(radarAnimIdx+1)%radarFrames.length; addRadarFrame(radarAnimIdx); },700);
     }).catch(()=>{});
 }
 
 function addRadarFrame(idx){
   if(!radarMap||!radarFrames[idx]) return;
-  if(radarLayer){ radarMap.removeLayer(radarLayer); }
-  const path=radarFrames[idx].path;
+  if(radarLayer) radarMap.removeLayer(radarLayer);
   radarLayer=L.tileLayer(
-    `https://tilecache.rainviewer.com${path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7, tileSize:256, minZoom:4, maxZoom:7}
+    `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
+    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:7}
   );
   radarLayer.addTo(radarMap);
 }
@@ -2502,7 +2283,7 @@ function loadPlugUI(){
   switchPlugTab(plugCfg.type);
   const si=v=>document.getElementById(v);
   if(si('shelly-key')) si('shelly-key').value=plugCfg.shellyKey||'';
-  if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'7c2c6768d8b4';
+  if(si('shelly-dev')) si('shelly-dev').value=plugCfg.shellyDev||'';
   if(si('shelly-srv')) si('shelly-srv').value=plugCfg.shellySrv||'shelly-103eu.shelly.cloud';
   if(si('myst-ip'))    si('myst-ip').value=plugCfg.mystIp||'';
   if(si('plug-thr'))   si('plug-thr').value=plugCfg.threshold||25;
@@ -2631,15 +2412,27 @@ function restartAutoRefresh(){
   window._ar=setInterval(async()=>{try{await refreshAll();}catch(e){console.log('Refresh Fehler',e);}}, refreshMins*60*1000);
 }
 
-// ── Auto-Scale: passt die ganze App an jeden Bildschirm an ──
+
+// ══════════════════════════════════════════════════════════════════
+// AUTO-SCALE: Passt die App automatisch an jeden Bildschirm an
+// ══════════════════════════════════════════════════════════════════
 function autoScale(){
   const w = window.innerWidth;
   const h = window.innerHeight;
+  // Handy Hochformat: kein Zoom, normal scrollen
   if(w < 600){ document.documentElement.style.zoom=''; return; }
-  // App-Höhe bei zoom=1 mit Radar (AN): ~1380px
-  const naturalH = 1300;
-  let scale = (h * 0.98) / naturalH;
-  scale = Math.max(0.55, Math.min(1.0, scale));
+  const radarOn = localStorage.getItem('ww_radar_on')==='1';
+  // Geschätzte Gesamthöhe der App bei zoom=1
+  const hdrH   = 70;   // Header
+  const locH   = 60;   // Standort-Bar
+  const sbH    = 36;   // Status-Bar
+  const sensH  = 170;  // Temperaturkarten
+  const wetH   = 480;  // Wetterkarte
+  const radH   = radarOn ? 290 : 65; // Radar
+  const padH   = 40;   // Abstände
+  const naturalH = hdrH + locH + sbH + sensH + wetH + radH + padH;
+  let scale = (h * 0.99) / naturalH;
+  scale = Math.max(0.50, Math.min(1.05, scale));
   document.documentElement.style.zoom = scale.toFixed(3);
 }
 autoScale();
@@ -2649,7 +2442,6 @@ window.addEventListener('resize', autoScale);
 // INIT
 // ══════════════════════════════════════════════════════════════════
 applyTheme();
-applyWxColors();
 renderCards();
 renderChips();
 // Nach dem Laden sofort alte Sensorwerte anzeigen, bis neue Werte kommen.
