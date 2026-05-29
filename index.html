@@ -1940,40 +1940,38 @@ async function fetchCloud(id){
   const urls=[`${PROXY}/device/status`,`https://${CLOUD}/device/status`];
   let lastErr=null;
 
-  // Gen2+ API (H&T G3) – neue JSON-API
+  // Gen2+ API (H&T G3) – neue JSON-API, nur direkt zur Cloud
   if(!id.startsWith('XB') && id.length < 20){
-    const v2urls=[
-      `${PROXY}/v2/devices/api/get`,
-      `https://${CLOUD}/v2/devices/api/get`
-    ];
-    for(const v2url of v2urls){
-      try{
-        const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),12000);
-        const r=await fetch(`${v2url}?auth_key=${AUTH}`,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ids:[id],select:['status']}),
-          cache:'no-store',
-          signal:ctrl.signal
-        });
-        clearTimeout(tid);
-        if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
-        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(`https://${CLOUD}/v2/devices/api/get?auth_key=${AUTH}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ids:[id],select:['status']}),
+        cache:'no-store',
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(r.ok){
         const arr=await r.json();
         const dev=Array.isArray(arr)?arr[0]:arr;
-        if(dev&&dev.online!==0){
+        if(dev){
           const s=dev.status||{};
           const temp=s['temperature:0']?.tC??s.temperature?.tC??null;
           const hum =s['humidity:0']?.rh ??s.humidity?.rh ??null;
           const bat =s['devicepower:0']?.battery?.percent??null;
           if(temp!==null||hum!==null){
             setConnPill('cloud','☁ Cloud');
-            return{online:true,temp,hum,bat,updated:null,proxy:false};
+            return{online:dev.online!==0,temp,hum,bat,updated:null,proxy:false};
           }
         }
-      }catch(e){ lastErr=e; }
-    }
+      } else {
+        lastErr=new Error('v2 HTTP '+r.status);
+      }
+    }catch(e){ lastErr=e; }
+    // Bei Gen2 nicht auf alte API fallen – würde nur 400 geben
+    throw lastErr||new Error('H&T G3 nicht erreichbar');
   }
 
   // Gen1 / BLU HT – alte Form-API
@@ -2101,7 +2099,9 @@ async function loadSensor(key){
     try{result=await fetchLocal(dev.localIp);setConnPill('local','📶 Lokal');}catch(e){}
   }
   if(!result){
-    const ids = dev.ids || [dev.id];
+    // Gen2 (H&T G3): nur primäre ID verwenden
+    const isGen2 = dev.id && !dev.id.startsWith('XB') && dev.id.length < 20;
+    const ids = isGen2 ? [dev.id] : (dev.ids || [dev.id]);
     let lastError = null;
     for(const id of ids){
       try{
