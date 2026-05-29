@@ -24,9 +24,6 @@ body {
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
   display:flex;flex-direction:column;align-items:stretch;
 }
-#wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
-#wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
-.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
 html,body{
@@ -60,7 +57,7 @@ html:fullscreen,body:fullscreen{
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 #wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
-.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto}
+.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
 
 /* ── HEADER ── */
 .header{
@@ -314,6 +311,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fdh{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
 .fdl{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:1px}
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
+.radar-lbl{background:#0369a1!important;color:#fff!important;border:none!important;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
 
 
 /* FINALE TABLET-VERSION: Stunden gross, aber niedriger, damit 7-Tage sichtbar bleibt */
@@ -914,11 +912,11 @@ const CLOUD = 'shelly-71-eu.shelly.cloud';
 
 // Geräte: BLU HT (Bluetooth, via Cloud) – IDs geprüft am 19.05.2026
 const DEVICES = {
-  // BLU HT Sensoren – über Cloud
-  blu1:   { id:'XB137192906687768', ids:['XB137192906687768'], localIp:null, label:'Raumtemperatur Vorbau',    icon:'❄️', acc:'ap', tag:'BLU HT' },
-  blu2:   { id:'XB137192906397952', ids:['XB137192906397952'], localIp:null, label:'Raumtemperatur Wohnwagen', icon:'🏠', acc:'ao', tag:'BLU HT' },
-  aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',          icon:'🌿', acc:'as', tag:'BLU HT' },
-  wetter: { id:'wetter',            localIp:null, label:'Wetter',                   icon:'🌍', acc:'as', tag:''       },
+  blu1:   { id:'543204576ac4', ids:['543204576ac4','92573797935812','XB137192906687768'], localIp:'10.10.20.76',  label:'Vorbau Wohnwagen Raumtemperatur', icon:'❄️', acc:'ap', tag:'H&T G3' },
+  blu2:   { id:'54320457aee8', ids:['54320457aee8','92573797953256','XB137192906397952'], localIp:'10.10.20.209', label:'Wohnwagen Raumtemperatur',        icon:'🏠', acc:'ao', tag:'H&T G3' },
+  aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',                icon:'🌿', acc:'as', tag:'BLU HT' },
+  wetter: { id:'wetter', localIp:null, label:'Wetter', icon:'🌍', acc:'as', tag:'' },
+  radar:  { id:'radar',  localIp:null, label:'Wetterradar', icon:'🛰️', acc:'as', tag:'' },
 };
 
 const DEFAULT_LOCS = [
@@ -1004,7 +1002,7 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // ══════════════════════════════════════════════════════════════════
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
@@ -1692,33 +1690,6 @@ function renderCards(){
   initRadarMap();
 }
 
-function renderSensorCard(key){
-  const d=DEVICES[key];
-  return`<div class="card" id="card-${key}">
-    <div class="cal ${d.acc}"></div>
-    <div class="ch"><div class="dot" id="dot-${key}"></div><div class="ct">${d.label}</div><div class="tag">${d.tag}</div></div>
-    <div id="body-${key}"><div class="shimmer" style="height:50px"></div></div>
-    <div id="bat-${key}"></div><div id="seen-${key}" class="ls"></div>
-  </div>`;
-}
-
-function renderWeatherCard(){
-  return`<div class="card" id="card-wetter" style="position:relative;overflow:hidden">
-    <canvas id="wx-mini"></canvas>
-    <div class="cal as"></div>
-    <div class="ch">
-      <div style="font-size:14px">🌍</div>
-      <div class="ct" id="w-title">Wetter · ${activeLoc.name}</div>
-      <div class="tag" id="w-ts">…</div>
-    </div>
-    <div id="body-weather">
-      <div class="shimmer" style="height:60px;margin-bottom:8px"></div>
-      <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
-      <div class="shimmer" style="height:80px"></div>
-    </div>
-  </div>`;
-}
-
 function renderRadarCard(){
   const radarOn = localStorage.getItem('ww_radar_on')==='1';
   return`<div class="card" id="card-radar" style="position:relative;overflow:hidden;padding:12px">
@@ -1741,8 +1712,7 @@ function renderRadarCard(){
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
     </div>
-  </div>`;
-}
+  </div>`;}
 
 let radarMap=null, radarLayer=null, radarFrames=[], radarAnimIdx=0, radarAnimTimer=null;
 
@@ -1789,15 +1759,12 @@ function buildRadarMap(mapDiv){
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:9,opacity:0.8}).addTo(radarMap);
   L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
    .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
-
-  // Radar-Layer bei Zoom>6 ausblenden (RainViewer limit)
   radarMap.on('zoomend',()=>{
     if(radarLayer){
       if(radarMap.getZoom()>6){ radarMap.removeLayer(radarLayer); }
       else { if(!radarMap.hasLayer(radarLayer)) radarLayer.addTo(radarMap); }
     }
   });
-
   fetch('https://api.rainviewer.com/public/weather-maps.json')
     .then(r=>r.json())
     .then(data=>{
@@ -1815,10 +1782,36 @@ function addRadarFrame(idx){
   if(radarLayer) radarMap.removeLayer(radarLayer);
   radarLayer=L.tileLayer(
     `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7, tileSize:256, minZoom:4, maxZoom:6}
+    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:6}
   );
-  // Nur hinzufügen wenn Zoom ≤ 6
   if(radarMap.getZoom()<=6) radarLayer.addTo(radarMap);
+}
+
+function renderSensorCard(key){
+  const d=DEVICES[key];
+  return`<div class="card" id="card-${key}">
+    <div class="cal ${d.acc}"></div>
+    <div class="ch"><div class="dot" id="dot-${key}"></div><div class="ct">${d.label}</div><div class="tag">${d.tag}</div></div>
+    <div id="body-${key}"><div class="shimmer" style="height:50px"></div></div>
+    <div id="bat-${key}"></div><div id="seen-${key}" class="ls"></div>
+  </div>`;
+}
+
+function renderWeatherCard(){
+  return`<div class="card" id="card-wetter" style="position:relative;overflow:hidden">
+    <canvas id="wx-mini"></canvas>
+    <div class="cal as"></div>
+    <div class="ch">
+      <div style="font-size:14px">🌍</div>
+      <div class="ct" id="w-title">Wetter · ${activeLoc.name}</div>
+      <div class="tag" id="w-ts">…</div>
+    </div>
+    <div id="body-weather">
+      <div class="shimmer" style="height:60px;margin-bottom:8px"></div>
+      <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
+      <div class="shimmer" style="height:80px"></div>
+    </div>
+  </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2425,31 +2418,20 @@ function restartAutoRefresh(){
   window._ar=setInterval(async()=>{try{await refreshAll();}catch(e){console.log('Refresh Fehler',e);}}, refreshMins*60*1000);
 }
 
-
 // ══════════════════════════════════════════════════════════════════
-// AUTO-SCALE: Passt die App automatisch an jeden Bildschirm an
+// AUTO-SCALE
 // ══════════════════════════════════════════════════════════════════
 function autoScale(){
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  // Handy Hochformat: kein Zoom, normal scrollen
-  if(w < 600){ document.documentElement.style.zoom=''; return; }
-  const radarOn = localStorage.getItem('ww_radar_on')==='1';
-  // Geschätzte Gesamthöhe der App bei zoom=1
-  const hdrH   = 70;   // Header
-  const locH   = 60;   // Standort-Bar
-  const sbH    = 36;   // Status-Bar
-  const sensH  = 170;  // Temperaturkarten
-  const wetH   = 480;  // Wetterkarte
-  const radH   = radarOn ? 320 : 65; // Radar
-  const padH   = 40;   // Abstände
-  const naturalH = hdrH + locH + sbH + sensH + wetH + radH + padH;
-  let scale = (h * 0.99) / naturalH;
-  scale = Math.max(0.50, Math.min(1.05, scale));
-  document.documentElement.style.zoom = scale.toFixed(3);
+  const w=window.innerWidth, h=window.innerHeight;
+  if(w<600){ document.documentElement.style.zoom=''; return; }
+  const radarOn=localStorage.getItem('ww_radar_on')==='1';
+  const naturalH=70+60+36+170+480+(radarOn?320:65)+40;
+  let scale=(h*0.99)/naturalH;
+  scale=Math.max(0.50,Math.min(1.05,scale));
+  document.documentElement.style.zoom=scale.toFixed(3);
 }
 autoScale();
-window.addEventListener('resize', autoScale);
+window.addEventListener('resize',autoScale);
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
