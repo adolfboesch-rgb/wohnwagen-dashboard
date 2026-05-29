@@ -166,7 +166,8 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* ── LOCATION BAR ── */
 .loc-bar{padding:10px 14px 8px;border-bottom:1px solid var(--b2);
-  background:rgba(var(--bg-rgb,6,13,26),.6);backdrop-filter:blur(10px)}
+  background:rgba(var(--bg-rgb,6,13,26),.6);backdrop-filter:blur(10px);
+  position:relative;z-index:30}
 .loc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .lc{display:flex;align-items:center;gap:5px;padding:6px 10px;
   background:rgba(255,255,255,.06);border:1px solid var(--b2);border-radius:16px;
@@ -1939,20 +1940,26 @@ async function fetchCloud(id){
   const urls=[`${PROXY}/device/status`,`https://${CLOUD}/device/status`];
   let lastErr=null;
 
-  // Gen2+ API (H&T G3, etc.) – neue JSON-API
+  // Gen2+ API (H&T G3) – neue JSON-API
   if(!id.startsWith('XB') && id.length < 20){
-    try{
-      const ctrl=new AbortController();
-      const tid=setTimeout(()=>ctrl.abort(),12000);
-      const r=await fetch(`https://${CLOUD}/v2/devices/api/get?auth_key=${AUTH}`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ids:[id],select:['status']}),
-        cache:'no-store',
-        signal:ctrl.signal
-      });
-      clearTimeout(tid);
-      if(r.ok){
+    const v2urls=[
+      `${PROXY}/v2/devices/api/get`,
+      `https://${CLOUD}/v2/devices/api/get`
+    ];
+    for(const v2url of v2urls){
+      try{
+        const ctrl=new AbortController();
+        const tid=setTimeout(()=>ctrl.abort(),12000);
+        const r=await fetch(`${v2url}?auth_key=${AUTH}`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ids:[id],select:['status']}),
+          cache:'no-store',
+          signal:ctrl.signal
+        });
+        clearTimeout(tid);
+        if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
+        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
         const arr=await r.json();
         const dev=Array.isArray(arr)?arr[0]:arr;
         if(dev&&dev.online!==0){
@@ -1965,8 +1972,8 @@ async function fetchCloud(id){
             return{online:true,temp,hum,bat,updated:null,proxy:false};
           }
         }
-      }
-    }catch(e){ lastErr=e; }
+      }catch(e){ lastErr=e; }
+    }
   }
 
   // Gen1 / BLU HT – alte Form-API
