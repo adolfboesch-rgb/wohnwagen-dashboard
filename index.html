@@ -1000,6 +1000,15 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // ══════════════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════════════
+// Versions-Check: Bei neuer App-Version localStorage zurücksetzen
+const APP_VERSION = '2026-05-29-v2';
+if(localStorage.getItem('ww_app_version') !== APP_VERSION){
+  localStorage.removeItem('ww_locs_v5');
+  localStorage.removeItem('ww_active_v5');
+  localStorage.removeItem('ww_order_v5');
+  localStorage.setItem('ww_app_version', APP_VERSION);
+}
+
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
 let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
@@ -1848,14 +1857,22 @@ async function doLocSearch(){
   dd.innerHTML='<div class="loc-ddi" style="color:var(--mu)">🔍 Suche…</div>';
   dd.style.display='block';
   try{
-    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=de&format=json`);
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=de&format=json`,{signal:ctrl.signal});
+    clearTimeout(tid);
     const data=await r.json();
-    if(!data.results?.length){dd.innerHTML='<div class="loc-ddi" style="color:var(--red)">Kein Ort gefunden</div>';return;}
+    if(!data.results?.length){
+      dd.innerHTML='<div class="loc-ddi" style="color:var(--red)">Kein Ort gefunden</div>';
+      return;
+    }
     dd.innerHTML=data.results.map(loc=>{
       const label=[loc.name,loc.admin1,loc.country].filter(Boolean).join(', ');
       return`<div class="loc-ddi" onclick="addLoc(${loc.latitude},${loc.longitude},'${loc.name.replace(/'/g,"\\'")}')">📍 ${label}</div>`;
     }).join('');
-  }catch(e){dd.innerHTML=`<div class="loc-ddi" style="color:var(--red)">Fehler</div>`;}
+  }catch(e){
+    dd.innerHTML=`<div class="loc-ddi" style="color:var(--red)">⚠ Fehler: ${e.message}</div>`;
+  }
 }
 
 function addLoc(lat,lon,name){
