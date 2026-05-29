@@ -1938,49 +1938,68 @@ async function fetchCloud(id){
   const urls=[`${PROXY}/device/status`,`https://${CLOUD}/device/status`];
   let lastErr=null;
 
-  for(let attempt=1; attempt<=1; attempt++){  // Nur 1 Versuch - kein Retry
-    for(const url of urls){
-      try{
-        const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),12000);
-        const r=await fetch(url,{
-          method:'POST',
-          headers:{'Content-Type':'application/x-www-form-urlencoded'},
-          body,
-          cache:'no-store',
-          signal:ctrl.signal
-        });
-        clearTimeout(tid);
-        // 429 = Worker-Limit erreicht - direkt zur Cloud-URL
-        if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
-        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
-
-        const j=await r.json();
-        if(j.isok===false){
-          lastErr=new Error(JSON.stringify(j.errors||j));
-          continue;
+  // Gen2+ API (H&T G3, etc.) – neue JSON-API
+  if(!id.startsWith('XB') && id.length < 20){
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(`https://${CLOUD}/v2/devices/api/get?auth_key=${AUTH}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ids:[id],select:['status']}),
+        cache:'no-store',
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(r.ok){
+        const arr=await r.json();
+        const dev=Array.isArray(arr)?arr[0]:arr;
+        if(dev&&dev.online!==0){
+          const s=dev.status||{};
+          const temp=s['temperature:0']?.tC??s.temperature?.tC??null;
+          const hum =s['humidity:0']?.rh ??s.humidity?.rh ??null;
+          const bat =s['devicepower:0']?.battery?.percent??null;
+          if(temp!==null||hum!==null){
+            setConnPill('cloud','☁ Cloud');
+            return{online:true,temp,hum,bat,updated:null,proxy:false};
+          }
         }
-
-        const s=j.data?.device_status || j.data?.status || j.device_status || j.status || j.data || j;
-        const online=j.data?.online!==false;
-
-        const temp = s['temperature:0']?.tC ?? s.temperature?.tC ?? s.tmp?.value ??
-                     s.temperature ?? s.tmp ?? s.tC ?? pickDeep(s,['tC','temperature','tmp','temp']);
-        const hum  = s['humidity:0']?.rh ?? s.humidity?.rh ?? s.hum?.value ??
-                     s.humidity ?? s.hum ?? s.rh ?? pickDeep(s,['rh','humidity','hum']);
-        const bat  = s['devicepower:0']?.battery?.percent ?? s.bat?.percent ??
-                     s.battery?.level ?? s.battery ?? pickDeep(s,['percent','battery','bat','level']);
-
-        if(temp!==null || hum!==null){
-          return{online,temp,hum,bat,updated:s._updated||s.updated||null,proxy:url.includes('workers')};
-        }
-        lastErr=new Error('Keine Temperaturdaten in Cloud-Antwort');
-      }catch(e){
-        lastErr=e;
       }
-    }
+    }catch(e){ lastErr=e; }
   }
-  throw lastErr || new Error('Cloud nicht erreichbar');
+
+  // Gen1 / BLU HT – alte Form-API
+  for(const url of urls){
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body,
+        cache:'no-store',
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
+      if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
+      const j=await r.json();
+      if(j.isok===false){ lastErr=new Error(JSON.stringify(j.errors||j)); continue; }
+      const s=j.data?.device_status||j.data?.status||j.device_status||j.status||j.data||j;
+      const online=j.data?.online!==false;
+      const temp=s['temperature:0']?.tC??s.temperature?.tC??s.tmp?.value??
+                 s.temperature??s.tmp??s.tC??pickDeep(s,['tC','temperature','tmp','temp']);
+      const hum =s['humidity:0']?.rh??s.humidity?.rh??s.hum?.value??
+                 s.humidity??s.hum??s.rh??pickDeep(s,['rh','humidity','hum']);
+      const bat =s['devicepower:0']?.battery?.percent??s.bat?.percent??
+                 s.battery?.level??s.battery??pickDeep(s,['percent','battery','bat','level']);
+      if(temp!==null||hum!==null){
+        return{online,temp,hum,bat,updated:s._updated||s.updated||null,proxy:url.includes('workers')};
+      }
+      lastErr=new Error('Keine Temperaturdaten');
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr||new Error('Cloud nicht erreichbar');
 }
 
 function tcls(t){
