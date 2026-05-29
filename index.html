@@ -185,7 +185,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .loc-add:hover{background:rgba(56,189,248,.25)}
 .loc-dd{position:absolute;top:calc(100% + 4px);left:0;right:80px;
   background:rgba(var(--bg-rgb,6,13,26),.98);border:1px solid var(--b3);border-radius:10px;
-  overflow:hidden;z-index:50;display:none;max-height:180px;overflow-y:auto;backdrop-filter:blur(10px)}
+  overflow:hidden;z-index:200;display:none;max-height:180px;overflow-y:auto;backdrop-filter:blur(10px)}
 .loc-ddi{padding:9px 12px;font-size:12px;cursor:pointer;color:var(--tx);font-family:var(--mono);
   border-bottom:1px solid var(--b2);transition:background .15s}
 .loc-ddi:hover{background:rgba(56,189,248,.08)}
@@ -1887,7 +1887,8 @@ function addLoc(lat,lon,name){
   saveActive(); renderChips(); loadWeather();
 }
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.loc-row')) document.getElementById('loc-dd').style.display='none';
+  if(!e.target.closest('.loc-row') && !e.target.closest('.loc-dd'))
+    document.getElementById('loc-dd').style.display='none';
 });
 
 // ══════════════════════════════════════════════════════════════════
