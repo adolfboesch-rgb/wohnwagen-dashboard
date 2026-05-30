@@ -1720,11 +1720,11 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease">
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
       <iframe
         src="https://www.wetteronline.de/wetterradar/schluchsee?wrm=10.5&wry=47.82,8.18&wrn=Schluchsee&wrg=z4626&wrx=47.82,8.18"
-        width="100%" height="420" frameborder="0" scrolling="no"
-        style="border:none;border-radius:12px;display:block"
+        width="100%" height="600" frameborder="0" scrolling="no"
+        style="border:none;display:block;margin-top:-175px;pointer-events:auto"
         allowfullscreen>
       </iframe>
     </div>
@@ -2430,7 +2430,15 @@ function autoScale(){
   const naturalH=70+60+36+170+480+(radarOn?500:65)+40;
   let scale=(h*0.99)/naturalH;
   scale=Math.max(0.50,Math.min(1.05,scale));
-  document.documentElement.style.zoom=scale.toFixed(3);
+  // Zoom + Zentrierung: transform-origin center top verhindert Verschiebung
+  document.documentElement.style.zoom='';
+  document.documentElement.style.transformOrigin='top center';
+  document.documentElement.style.transform=`scale(${scale.toFixed(3)})`;
+  document.documentElement.style.width=(100/scale).toFixed(2)+'%';
+  document.documentElement.style.marginLeft='auto';
+  document.documentElement.style.marginRight='auto';
+  // Body ebenfalls zentrieren
+  document.body.style.minHeight=(100/scale).toFixed(2)+'vh';
 }
 autoScale();
 window.addEventListener('resize',autoScale);
