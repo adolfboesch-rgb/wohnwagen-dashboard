@@ -22,7 +22,8 @@ html{filter:brightness(var(--brightness))}
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
-  display:flex;flex-direction:column;align-items:stretch;
+  display:flex;flex-direction:column;align-items:center;
+  width:100vw;overflow-x:hidden;
 }
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
@@ -1709,8 +1710,8 @@ function renderRadarCard(){
     <div class="cal as"></div>
     <div class="ch" style="margin-bottom:8px">
       <div style="font-size:14px">🛰️</div>
-      <div class="ct">Wetterradar</div>
-      <div class="tag">RainViewer</div>
+      <div class="ct">Wetterradar · Schluchsee</div>
+      <div class="tag">WetterOnline</div>
       <button id="radar-toggle-btn" onclick="toggleRadar()"
         style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
         font-family:var(--mono);font-size:11px;font-weight:700;
@@ -1719,8 +1720,13 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'260px':'0px'};transition:height .4s ease">
-      <div id="radar-map" style="width:100%;height:260px"></div>
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease">
+      <iframe
+        src="https://www.wetteronline.de/wetterradar/schluchsee?wrm=10.5&wry=47.82,8.18&wrn=Schluchsee&wrg=z4626&wrx=47.82,8.18"
+        width="100%" height="420" frameborder="0" scrolling="no"
+        style="border:none;border-radius:12px;display:block"
+        allowfullscreen>
+      </iframe>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
@@ -1739,67 +1745,15 @@ function toggleRadar(){
     wrap.style.height='0px'; hint.style.display='block';
     btn.style.background='rgba(255,255,255,0.08)'; btn.style.color='var(--mu)';
     btn.textContent='○ Einblenden';
-    if(radarAnimTimer){ clearInterval(radarAnimTimer); radarAnimTimer=null; }
-    if(radarMap){ radarMap.remove(); radarMap=null; radarLayer=null; }
   } else {
-    wrap.style.height='260px'; hint.style.display='none';
+    wrap.style.height='420px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
-    setTimeout(()=>{ initRadarMap(true); },420);
   }
   setTimeout(autoScale, 500);
 }
 
-function initRadarMap(force=false){
-  const on = localStorage.getItem('ww_radar_on')==='1';
-  if(!on && !force) return;
-  if(radarMap){ if(!force) return; radarMap.remove(); radarMap=null; radarLayer=null; }
-  const mapDiv=document.getElementById('radar-map'); if(!mapDiv) return;
-  if(!window.L){
-    const link=document.createElement('link');
-    link.rel='stylesheet'; link.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-    document.head.appendChild(link);
-    const script=document.createElement('script');
-    script.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-    script.onload=()=>buildRadarMap(mapDiv);
-    document.head.appendChild(script);
-  } else { buildRadarMap(mapDiv); }
-}
-
-function buildRadarMap(mapDiv){
-  const lat=47.818, lng=8.194;
-  radarMap=L.map(mapDiv,{zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9}).setView([lat,lng],7);
-  // Dunkle Karte statt hell
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:9,opacity:0.9}).addTo(radarMap);
-  L.circleMarker([lat,lng],{radius:8,color:'#ef4444',fillColor:'#ef4444',fillOpacity:1,weight:3})
-   .addTo(radarMap).bindTooltip('Schluchsee',{permanent:true,direction:'right',className:'radar-lbl'});
-  radarMap.on('zoomend',()=>{
-    if(radarLayer){
-      if(radarMap.getZoom()>6){ radarMap.removeLayer(radarLayer); }
-      else { if(!radarMap.hasLayer(radarLayer)) radarLayer.addTo(radarMap); }
-    }
-  });
-  fetch('https://api.rainviewer.com/public/weather-maps.json')
-    .then(r=>r.json())
-    .then(data=>{
-      radarFrames=(data.radar?.past||[]).concat(data.radar?.nowcast||[]);
-      if(!radarFrames.length) return;
-      addRadarFrame(radarFrames.length-1);
-      radarAnimIdx=0;
-      if(radarAnimTimer) clearInterval(radarAnimTimer);
-      radarAnimTimer=setInterval(()=>{ radarAnimIdx=(radarAnimIdx+1)%radarFrames.length; addRadarFrame(radarAnimIdx); },700);
-    }).catch(()=>{});
-}
-
-function addRadarFrame(idx){
-  if(!radarMap||!radarFrames[idx]) return;
-  if(radarLayer) radarMap.removeLayer(radarLayer);
-  radarLayer=L.tileLayer(
-    `https://tilecache.rainviewer.com${radarFrames[idx].path}/256/{z}/{x}/{y}/4/1_1.png`,
-    {opacity:0.7,tileSize:256,minZoom:4,maxZoom:6}
-  );
-  if(radarMap.getZoom()<=6) radarLayer.addTo(radarMap);
-}
+function initRadarMap(){ /* WetterOnline iframe - kein Leaflet nötig */ }
 
 function renderSensorCard(key){
   const d=DEVICES[key];
@@ -2473,7 +2427,7 @@ function autoScale(){
   const w=window.innerWidth, h=window.innerHeight;
   if(w<600){ document.documentElement.style.zoom=''; return; }
   const radarOn=localStorage.getItem('ww_radar_on')==='1';
-  const naturalH=70+60+36+170+480+(radarOn?320:65)+40;
+  const naturalH=70+60+36+170+480+(radarOn?500:65)+40;
   let scale=(h*0.99)/naturalH;
   scale=Math.max(0.50,Math.min(1.05,scale));
   document.documentElement.style.zoom=scale.toFixed(3);
