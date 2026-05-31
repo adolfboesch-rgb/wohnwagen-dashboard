@@ -716,7 +716,22 @@ html,body{
   background:var(--bg-hex,#060d1a);
 }
 
+
+/* Wetterradar: Leaflet/RainViewer statt iframe, funktioniert auch auf Mobile besser */
+#rv-map{width:100%;height:420px;background:#08111f;border-radius:12px;overflow:hidden}
+#rv-map .leaflet-tile-pane{filter:saturate(1.05) brightness(.85)}
+#rv-status{position:absolute;left:10px;bottom:10px;z-index:600;background:rgba(6,13,26,.82);border:1px solid var(--b2);border-radius:9px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--tx);backdrop-filter:blur(8px)}
+#rv-fallback{display:none;text-align:center;padding:18px 10px;color:var(--mu);font-family:var(--mono);font-size:11px;line-height:1.5}
+#rv-fallback a{color:var(--ac);text-decoration:none}
+
 </style>
+
+<!-- Leaflet: stabile Kartenbasis für Wetterradar ohne iframe -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIINfQwYMWBzQ7iSTJ0l3NlYAMl25nrZY5A=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 </head>
 <body>
 
@@ -1712,8 +1727,8 @@ function renderRadarCard(){
     <div class="cal as"></div>
     <div class="ch" style="margin-bottom:8px">
       <div style="font-size:14px">🛰️</div>
-      <div class="ct">Wetterradar · Schluchsee</div>
-      <div class="tag">WetterOnline</div>
+      <div class="ct" id="radar-title">Wetterradar · ${activeLoc.name}</div>
+      <div class="tag">RainViewer</div>
       <button id="radar-toggle-btn" onclick="toggleRadar()"
         style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
         font-family:var(--mono);font-size:11px;font-weight:700;
@@ -1723,12 +1738,11 @@ function renderRadarCard(){
       </button>
     </div>
     <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
-      <iframe
-        src="https://www.wetteronline.de/wetterradar/schluchsee?wrm=10.5&wry=47.82,8.18&wrn=Schluchsee&wrg=z4626&wrx=47.82,8.18"
-        width="100%" height="600" frameborder="0" scrolling="no"
-        style="border:none;display:block;margin-top:-175px;pointer-events:auto"
-        allowfullscreen>
-      </iframe>
+      <div id="rv-map"></div>
+      <div id="rv-status">Radar lädt…</div>
+      <div id="rv-fallback">Radar konnte nicht geladen werden.<br>
+        <a id="rv-open-link" href="https://www.rainviewer.com/map.html" target="_blank" rel="noopener">Radar extern öffnen</a>
+      </div>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
@@ -1751,11 +1765,58 @@ function toggleRadar(){
     wrap.style.height='420px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
+    setTimeout(initRadarMap, 150);
   }
   setTimeout(autoScale, 500);
 }
 
-function initRadarMap(){ /* WetterOnline iframe - kein Leaflet nötig */ }
+async function initRadarMap(){
+  const wrap=document.getElementById('radar-map-wrap');
+  const mapEl=document.getElementById('rv-map');
+  const status=document.getElementById('rv-status');
+  const fallback=document.getElementById('rv-fallback');
+  if(!wrap||!mapEl||localStorage.getItem('ww_radar_on')!=='1') return;
+  if(typeof L==='undefined'){
+    if(status) status.textContent='Kartenbibliothek nicht geladen';
+    if(fallback) fallback.style.display='block';
+    return;
+  }
+  const lat=Number(activeLoc.lat), lon=Number(activeLoc.lon);
+  const link=document.getElementById('rv-open-link');
+  if(link) link.href=`https://www.rainviewer.com/map.html?loc=${lat},${lon},8`;
+  if(!radarMap){
+    radarMap=L.map('rv-map',{zoomControl:true,attributionControl:true,scrollWheelZoom:false,tap:true})
+      .setView([lat,lon],8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19,
+      attribution:'© OpenStreetMap'
+    }).addTo(radarMap);
+    L.circleMarker([lat,lon],{radius:7,weight:2,fillOpacity:.9,color:'#38bdf8',fillColor:'#38bdf8'}).addTo(radarMap);
+  } else {
+    radarMap.setView([lat,lon],8);
+  }
+  setTimeout(()=>radarMap.invalidateSize(),250);
+  try{
+    const res=await fetch('https://api.rainviewer.com/public/weather-maps.json',{cache:'no-store'});
+    if(!res.ok) throw new Error('Radar API nicht erreichbar');
+    const data=await res.json();
+    radarFrames=(data.radar&&data.radar.past)||[];
+    if(!radarFrames.length) throw new Error('Keine Radar-Bilder verfügbar');
+    const frame=radarFrames[radarFrames.length-1];
+    const url=`${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+    if(radarLayer) radarMap.removeLayer(radarLayer);
+    radarLayer=L.tileLayer(url,{tileSize:256,opacity:.72,zIndex:10,maxZoom:7,attribution:'Radar © RainViewer'}).addTo(radarMap);
+    if(status){
+      const t=new Date(frame.time*1000).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+      status.textContent=`Radar ${t} · ${activeLoc.name}`;
+    }
+    if(fallback) fallback.style.display='none';
+  }catch(err){
+    console.warn(err);
+    if(status) status.textContent='Radar momentan nicht verfügbar';
+    if(fallback) fallback.style.display='block';
+  }
+}
 
 function renderSensorCard(key){
   const d=DEVICES[key];
@@ -1799,12 +1860,14 @@ function renderChips(){
   const wt=document.getElementById('w-title');if(wt) wt.textContent=`Wetter · ${activeLoc.name}`;
 }
 function updateRadarIframe(){
-  const iframe=document.querySelector('#radar-map-wrap iframe');
-  if(!iframe) return;
-  const lat=activeLoc.lat, lon=activeLoc.lon;
-  const name=activeLoc.name.toLowerCase().replace(/\s+/g,'-');
-  const nameEnc=encodeURIComponent(activeLoc.name);
-  iframe.src=`https://www.wetteronline.de/wetterradar/${name}?wrm=10.5&wry=${lat},${lon}&wrn=${nameEnc}&wrg=z4626&wrx=${lat},${lon}`;
+  // Name bleibt aus Kompatibilitätsgründen gleich; neu wird aber kein iframe mehr benutzt.
+  const rt=document.getElementById('radar-title');
+  if(rt) rt.textContent=`Wetterradar · ${activeLoc.name}`;
+  if(radarMap){
+    radarMap.setView([activeLoc.lat,activeLoc.lon],8);
+    setTimeout(()=>radarMap.invalidateSize(),100);
+  }
+  initRadarMap();
 }
 
 function selectLoc(i){
