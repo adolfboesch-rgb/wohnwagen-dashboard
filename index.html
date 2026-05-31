@@ -1722,11 +1722,11 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'460px':'0px'};transition:height .4s ease;position:relative">
       <iframe
         src="https://www.wetteronline.de/wetterradar/schluchsee?wrm=10.5&wry=47.82,8.18&wrn=Schluchsee&wrg=z4626&wrx=47.82,8.18"
-        width="100%" height="600" frameborder="0" scrolling="no"
-        style="border:none;display:block;margin-top:-175px;pointer-events:auto"
+        width="100%" height="700" frameborder="0" scrolling="no"
+        style="border:none;display:block;margin-top:-230px;pointer-events:auto"
         allowfullscreen>
       </iframe>
     </div>
@@ -1748,7 +1748,7 @@ function toggleRadar(){
     btn.style.background='rgba(255,255,255,0.08)'; btn.style.color='var(--mu)';
     btn.textContent='○ Einblenden';
   } else {
-    wrap.style.height='420px'; hint.style.display='none';
+    wrap.style.height='460px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
   }
