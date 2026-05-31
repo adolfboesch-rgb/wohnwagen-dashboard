@@ -22,6 +22,8 @@ html{filter:brightness(var(--brightness))}
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
+  display:flex;flex-direction:column;align-items:center;
+  width:100vw;overflow-x:hidden;
 }
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
@@ -56,7 +58,7 @@ html:fullscreen,body:fullscreen{
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 #wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
-.content{position:relative;z-index:1;transition:transform 1.2s ease}
+.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
 
 /* ── HEADER ── */
 .header{
@@ -165,7 +167,8 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 
 /* ── LOCATION BAR ── */
 .loc-bar{padding:10px 14px 8px;border-bottom:1px solid var(--b2);
-  background:rgba(var(--bg-rgb,6,13,26),.6);backdrop-filter:blur(10px)}
+  background:rgba(var(--bg-rgb,6,13,26),.6);backdrop-filter:blur(10px);
+  position:relative;z-index:30}
 .loc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .lc{display:flex;align-items:center;gap:5px;padding:6px 10px;
   background:rgba(255,255,255,.06);border:1px solid var(--b2);border-radius:16px;
@@ -184,7 +187,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .loc-add:hover{background:rgba(56,189,248,.25)}
 .loc-dd{position:absolute;top:calc(100% + 4px);left:0;right:80px;
   background:rgba(var(--bg-rgb,6,13,26),.98);border:1px solid var(--b3);border-radius:10px;
-  overflow:hidden;z-index:50;display:none;max-height:180px;overflow-y:auto;backdrop-filter:blur(10px)}
+  overflow:hidden;z-index:200;display:none;max-height:180px;overflow-y:auto;backdrop-filter:blur(10px)}
 .loc-ddi{padding:9px 12px;font-size:12px;cursor:pointer;color:var(--tx);font-family:var(--mono);
   border-bottom:1px solid var(--b2);transition:background .15s}
 .loc-ddi:hover{background:rgba(56,189,248,.08)}
@@ -310,6 +313,10 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .fdh{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--tx)}
 .fdl{font-family:var(--mono);font-size:9px;color:var(--mu);margin-top:1px}
 .fdr{font-size:9px;color:var(--rain);margin-top:1px;font-family:var(--mono)}
+.radar-lbl{background:#0369a1!important;color:#fff!important;border:none!important;font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+#card-radar .leaflet-control-zoom{border:none!important}
+#card-radar .leaflet-control-zoom a{background:#1e3a5f!important;color:#7dd3fc!important;border:1px solid #0369a1!important;font-size:16px!important;width:30px!important;height:30px!important;line-height:28px!important}
+#card-radar .leaflet-control-zoom a:hover{background:#0369a1!important;color:#fff!important}
 
 
 /* FINALE TABLET-VERSION: Stunden gross, aber niedriger, damit 7-Tage sichtbar bleibt */
@@ -888,6 +895,8 @@ html,body{
     <div class="loc-row">
       <input class="loc-input" id="loc-input" placeholder="Ort suchen und hinzufügen…" autocomplete="off" autocorrect="off" spellcheck="false">
       <button class="loc-add" onclick="doLocSearch()">+ Suchen</button>
+      <button class="loc-add" onclick="getGPSLocation()" id="gps-btn" title="Meinen Standort ermitteln"
+        style="padding:8px 12px;font-size:14px;white-space:nowrap">📍</button>
       <div class="loc-dd" id="loc-dd"></div>
     </div>
   </div>
@@ -910,11 +919,11 @@ const CLOUD = 'shelly-71-eu.shelly.cloud';
 
 // Geräte: BLU HT (Bluetooth, via Cloud) – IDs geprüft am 19.05.2026
 const DEVICES = {
-  // BLU HT Sensoren – über Cloud
-  blu1:   { id:'XB137192906687768', ids:['XB137192906687768'], localIp:null, label:'Raumtemperatur Vorbau',    icon:'❄️', acc:'ap', tag:'BLU HT' },
-  blu2:   { id:'XB137192906397952', ids:['XB137192906397952'], localIp:null, label:'Raumtemperatur Wohnwagen', icon:'🏠', acc:'ao', tag:'BLU HT' },
-  aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',          icon:'🌿', acc:'as', tag:'BLU HT' },
-  wetter: { id:'wetter',            localIp:null, label:'Wetter',                   icon:'🌍', acc:'as', tag:''       },
+  blu1:   { id:'543204576ac4', ids:['543204576ac4','92573797935812','XB137192906687768'], localIp:'10.10.20.76',  label:'Vorbau Wohnwagen Raumtemperatur', icon:'❄️', acc:'ap', tag:'H&T G3' },
+  blu2:   { id:'54320457aee8', ids:['54320457aee8','92573797953256','XB137192906397952'], localIp:'10.10.20.209', label:'Wohnwagen Raumtemperatur',        icon:'🏠', acc:'ao', tag:'H&T G3' },
+  aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',                icon:'🌿', acc:'as', tag:'BLU HT' },
+  wetter: { id:'wetter', localIp:null, label:'Wetter', icon:'🌍', acc:'as', tag:'' },
+  radar:  { id:'radar',  localIp:null, label:'Wetterradar', icon:'🛰️', acc:'as', tag:'' },
 };
 
 const DEFAULT_LOCS = [
@@ -998,9 +1007,18 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // ══════════════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════════════
+// Versions-Check: Bei neuer App-Version localStorage zurücksetzen
+const APP_VERSION = '2026-05-29-v2';
+if(localStorage.getItem('ww_app_version') !== APP_VERSION){
+  localStorage.removeItem('ww_locs_v5');
+  localStorage.removeItem('ww_active_v5');
+  localStorage.removeItem('ww_order_v5');
+  localStorage.setItem('ww_app_version', APP_VERSION);
+}
+
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter'];
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
@@ -1675,23 +1693,69 @@ function dDrop(e) {
 // ══════════════════════════════════════════════════════════════════
 function renderCards(){
   const container=document.getElementById('card-container');
-  const wetterIdx=cardOrder.indexOf('wetter');
-  const sensors=cardOrder.filter(k=>k!=='wetter');
-
-  if(wetterIdx===0){
-    container.innerHTML=renderWeatherCard()+`<div class="sensor-row">${sensors.map(renderSensorCard).join('')}</div>`;
-  } else if(wetterIdx===cardOrder.length-1){
-    container.innerHTML=`<div class="sensor-row">${sensors.map(renderSensorCard).join('')}</div>`+renderWeatherCard();
-  } else {
-    const before=cardOrder.slice(0,wetterIdx).filter(k=>k!=='wetter');
-    const after=cardOrder.slice(wetterIdx+1).filter(k=>k!=='wetter');
-    let html='';
-    if(before.length) html+=`<div class="sensor-row">${before.map(renderSensorCard).join('')}</div>`;
-    html+=renderWeatherCard();
-    if(after.length)  html+=`<div class="sensor-row">${after.map(renderSensorCard).join('')}</div>`;
-    container.innerHTML=html;
+  const specialKeys=['wetter','radar'];
+  let html='', sensorBuf=[];
+  for(const k of cardOrder){
+    if(specialKeys.includes(k)){
+      if(sensorBuf.length){ html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`; sensorBuf=[]; }
+      html+= k==='wetter' ? renderWeatherCard() : renderRadarCard();
+    } else { sensorBuf.push(k); }
   }
+  if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
+  container.innerHTML=html;
+  initRadarMap();
 }
+
+function renderRadarCard(){
+  const radarOn = localStorage.getItem('ww_radar_on')==='1';
+  return`<div class="card" id="card-radar" style="position:relative;overflow:hidden;padding:12px">
+    <div class="cal as"></div>
+    <div class="ch" style="margin-bottom:8px">
+      <div style="font-size:14px">🛰️</div>
+      <div class="ct">Wetterradar · Schluchsee</div>
+      <div class="tag">WetterOnline</div>
+      <button id="radar-toggle-btn" onclick="toggleRadar()"
+        style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
+        font-family:var(--mono);font-size:11px;font-weight:700;
+        background:${radarOn?'#0369a1':'rgba(255,255,255,0.08)'};
+        color:${radarOn?'#fff':'var(--mu)'}">
+        ${radarOn?'● Ausblenden':'○ Einblenden'}
+      </button>
+    </div>
+    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
+      <iframe
+        src="https://www.wetteronline.de/wetterradar/schluchsee?wrm=10.5&wry=47.82,8.18&wrn=Schluchsee&wrg=z4626&wrx=47.82,8.18"
+        width="100%" height="600" frameborder="0" scrolling="no"
+        style="border:none;display:block;margin-top:-175px;pointer-events:auto"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
+      Radar ausgeblendet · Tippe Einblenden
+    </div>
+  </div>`;}
+
+let radarMap=null, radarLayer=null, radarFrames=[], radarAnimIdx=0, radarAnimTimer=null;
+
+function toggleRadar(){
+  const on = localStorage.getItem('ww_radar_on')==='1';
+  localStorage.setItem('ww_radar_on', on?'0':'1');
+  const wrap=document.getElementById('radar-map-wrap');
+  const hint=document.getElementById('radar-off-hint');
+  const btn =document.getElementById('radar-toggle-btn');
+  if(on){
+    wrap.style.height='0px'; hint.style.display='block';
+    btn.style.background='rgba(255,255,255,0.08)'; btn.style.color='var(--mu)';
+    btn.textContent='○ Einblenden';
+  } else {
+    wrap.style.height='420px'; hint.style.display='none';
+    btn.style.background='#0369a1'; btn.style.color='#fff';
+    btn.textContent='● Ausblenden';
+  }
+  setTimeout(autoScale, 500);
+}
+
+function initRadarMap(){ /* WetterOnline iframe - kein Leaflet nötig */ }
 
 function renderSensorCard(key){
   const d=DEVICES[key];
@@ -1734,7 +1798,20 @@ function renderChips(){
   const ll=document.getElementById('logo-loc');if(ll) ll.textContent=activeLoc.name;
   const wt=document.getElementById('w-title');if(wt) wt.textContent=`Wetter · ${activeLoc.name}`;
 }
-function selectLoc(i){ activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather(); setDocumentBg(colorToHex(bgColor)); }
+function updateRadarIframe(){
+  const iframe=document.querySelector('#radar-map-wrap iframe');
+  if(!iframe) return;
+  const lat=activeLoc.lat, lon=activeLoc.lon;
+  const name=activeLoc.name.toLowerCase().replace(/\s+/g,'-');
+  const nameEnc=encodeURIComponent(activeLoc.name);
+  iframe.src=`https://www.wetteronline.de/wetterradar/${name}?wrm=10.5&wry=${lat},${lon}&wrn=${nameEnc}&wrg=z4626&wrx=${lat},${lon}`;
+}
+
+function selectLoc(i){
+  activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather();
+  setDocumentBg(colorToHex(bgColor));
+  updateRadarIframe();
+}
 function delLoc(e,i){
   e.stopPropagation(); if(savedLocs.length<=1) return;
   const wasActive=savedLocs[i].name===activeLoc.name;
@@ -1747,6 +1824,37 @@ let locTimer=null;
 document.getElementById('loc-input').addEventListener('input',()=>{ clearTimeout(locTimer); locTimer=setTimeout(doLocSearch,500); });
 document.getElementById('loc-input').addEventListener('keydown',e=>{ if(e.key==='Enter') doLocSearch(); });
 
+async function getGPSLocation(){
+  const btn=document.getElementById('gps-btn');
+  if(!navigator.geolocation){ alert('GPS nicht verfügbar auf diesem Gerät'); return; }
+  btn.textContent='⏳'; btn.disabled=true;
+  navigator.geolocation.getCurrentPosition(
+    async(pos)=>{
+      const lat=pos.coords.latitude.toFixed(4);
+      const lon=pos.coords.longitude.toFixed(4);
+      btn.textContent='🔍';
+      // Ortsname per Reverse Geocoding ermitteln
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=de`);
+        const d=await r.json();
+        const name=d.address?.village||d.address?.town||d.address?.city||d.address?.county||'Mein Standort';
+        addLoc(parseFloat(lat),parseFloat(lon),name);
+        btn.textContent='✅'; setTimeout(()=>{ btn.textContent='📍'; btn.disabled=false; },2000);
+      }catch(e){
+        // Ohne Ortsname trotzdem hinzufügen
+        addLoc(parseFloat(lat),parseFloat(lon),'Mein Standort');
+        btn.textContent='✅'; setTimeout(()=>{ btn.textContent='📍'; btn.disabled=false; },2000);
+      }
+    },
+    (err)=>{
+      btn.textContent='❌'; btn.disabled=false;
+      setTimeout(()=>{ btn.textContent='📍'; },2000);
+      if(err.code===1) alert('Bitte GPS-Zugriff erlauben in den Browser-Einstellungen');
+    },
+    {enableHighAccuracy:true, timeout:10000}
+  );
+}
+
 async function doLocSearch(){
   const q=document.getElementById('loc-input').value.trim();
   const dd=document.getElementById('loc-dd');
@@ -1754,14 +1862,22 @@ async function doLocSearch(){
   dd.innerHTML='<div class="loc-ddi" style="color:var(--mu)">🔍 Suche…</div>';
   dd.style.display='block';
   try{
-    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=de&format=json`);
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),8000);
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=de&format=json`,{signal:ctrl.signal});
+    clearTimeout(tid);
     const data=await r.json();
-    if(!data.results?.length){dd.innerHTML='<div class="loc-ddi" style="color:var(--red)">Kein Ort gefunden</div>';return;}
+    if(!data.results?.length){
+      dd.innerHTML='<div class="loc-ddi" style="color:var(--red)">Kein Ort gefunden</div>';
+      return;
+    }
     dd.innerHTML=data.results.map(loc=>{
       const label=[loc.name,loc.admin1,loc.country].filter(Boolean).join(', ');
       return`<div class="loc-ddi" onclick="addLoc(${loc.latitude},${loc.longitude},'${loc.name.replace(/'/g,"\\'")}')">📍 ${label}</div>`;
     }).join('');
-  }catch(e){dd.innerHTML=`<div class="loc-ddi" style="color:var(--red)">Fehler</div>`;}
+  }catch(e){
+    dd.innerHTML=`<div class="loc-ddi" style="color:var(--red)">⚠ Fehler: ${e.message}</div>`;
+  }
 }
 
 function addLoc(lat,lon,name){
@@ -1770,9 +1886,11 @@ function addLoc(lat,lon,name){
   const ex=savedLocs.find(l=>l.name===name);
   if(ex){activeLoc=ex;}else{const nl={name,lat,lon};savedLocs.push(nl);saveLocs();activeLoc=nl;}
   saveActive(); renderChips(); loadWeather();
+  updateRadarIframe();
 }
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.loc-row')) document.getElementById('loc-dd').style.display='none';
+  if(!e.target.closest('.loc-row') && !e.target.closest('.loc-dd'))
+    document.getElementById('loc-dd').style.display='none';
 });
 
 // ══════════════════════════════════════════════════════════════════
@@ -1823,49 +1941,72 @@ async function fetchCloud(id){
   const urls=[`${PROXY}/device/status`,`https://${CLOUD}/device/status`];
   let lastErr=null;
 
-  for(let attempt=1; attempt<=1; attempt++){  // Nur 1 Versuch - kein Retry
-    for(const url of urls){
-      try{
-        const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),12000);
-        const r=await fetch(url,{
-          method:'POST',
-          headers:{'Content-Type':'application/x-www-form-urlencoded'},
-          body,
-          cache:'no-store',
-          signal:ctrl.signal
-        });
-        clearTimeout(tid);
-        // 429 = Worker-Limit erreicht - direkt zur Cloud-URL
-        if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
-        if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
-
-        const j=await r.json();
-        if(j.isok===false){
-          lastErr=new Error(JSON.stringify(j.errors||j));
-          continue;
+  // Gen2+ API (H&T G3) – neue JSON-API, nur direkt zur Cloud
+  if(!id.startsWith('XB') && id.length < 20){
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(`https://${CLOUD}/v2/devices/api/get?auth_key=${AUTH}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ids:[id],select:['status']}),
+        cache:'no-store',
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(r.ok){
+        const arr=await r.json();
+        const dev=Array.isArray(arr)?arr[0]:arr;
+        if(dev){
+          const s=dev.status||{};
+          const temp=s['temperature:0']?.tC??s.temperature?.tC??null;
+          const hum =s['humidity:0']?.rh ??s.humidity?.rh ??null;
+          const bat =s['devicepower:0']?.battery?.percent??null;
+          if(temp!==null||hum!==null){
+            setConnPill('cloud','☁ Cloud');
+            return{online:dev.online!==0,temp,hum,bat,updated:null,proxy:false};
+          }
         }
-
-        const s=j.data?.device_status || j.data?.status || j.device_status || j.status || j.data || j;
-        const online=j.data?.online!==false;
-
-        const temp = s['temperature:0']?.tC ?? s.temperature?.tC ?? s.tmp?.value ??
-                     s.temperature ?? s.tmp ?? s.tC ?? pickDeep(s,['tC','temperature','tmp','temp']);
-        const hum  = s['humidity:0']?.rh ?? s.humidity?.rh ?? s.hum?.value ??
-                     s.humidity ?? s.hum ?? s.rh ?? pickDeep(s,['rh','humidity','hum']);
-        const bat  = s['devicepower:0']?.battery?.percent ?? s.bat?.percent ??
-                     s.battery?.level ?? s.battery ?? pickDeep(s,['percent','battery','bat','level']);
-
-        if(temp!==null || hum!==null){
-          return{online,temp,hum,bat,updated:s._updated||s.updated||null,proxy:url.includes('workers')};
-        }
-        lastErr=new Error('Keine Temperaturdaten in Cloud-Antwort');
-      }catch(e){
-        lastErr=e;
+      } else {
+        lastErr=new Error('v2 HTTP '+r.status);
       }
-    }
+    }catch(e){ lastErr=e; }
+    // Bei Gen2 nicht auf alte API fallen – würde nur 400 geben
+    throw lastErr||new Error('H&T G3 nicht erreichbar');
   }
-  throw lastErr || new Error('Cloud nicht erreichbar');
+
+  // Gen1 / BLU HT – alte Form-API
+  for(const url of urls){
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      const r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body,
+        cache:'no-store',
+        signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(r.status===429){ lastErr=new Error('429 Limit'); continue; }
+      if(!r.ok){ lastErr=new Error('HTTP '+r.status); continue; }
+      const j=await r.json();
+      if(j.isok===false){ lastErr=new Error(JSON.stringify(j.errors||j)); continue; }
+      const s=j.data?.device_status||j.data?.status||j.device_status||j.status||j.data||j;
+      const online=j.data?.online!==false;
+      const temp=s['temperature:0']?.tC??s.temperature?.tC??s.tmp?.value??
+                 s.temperature??s.tmp??s.tC??pickDeep(s,['tC','temperature','tmp','temp']);
+      const hum =s['humidity:0']?.rh??s.humidity?.rh??s.hum?.value??
+                 s.humidity??s.hum??s.rh??pickDeep(s,['rh','humidity','hum']);
+      const bat =s['devicepower:0']?.battery?.percent??s.bat?.percent??
+                 s.battery?.level??s.battery??pickDeep(s,['percent','battery','bat','level']);
+      if(temp!==null||hum!==null){
+        return{online,temp,hum,bat,updated:s._updated||s.updated||null,proxy:url.includes('workers')};
+      }
+      lastErr=new Error('Keine Temperaturdaten');
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr||new Error('Cloud nicht erreichbar');
 }
 
 function tcls(t){
@@ -1959,7 +2100,9 @@ async function loadSensor(key){
     try{result=await fetchLocal(dev.localIp);setConnPill('local','📶 Lokal');}catch(e){}
   }
   if(!result){
-    const ids = dev.ids || [dev.id];
+    // Gen2 (H&T G3): nur primäre ID verwenden
+    const isGen2 = dev.id && !dev.id.startsWith('XB') && dev.id.length < 20;
+    const ids = isGen2 ? [dev.id] : (dev.ids || [dev.id]);
     let lastError = null;
     for(const id of ids){
       try{
@@ -1984,11 +2127,12 @@ async function loadWeather(){
     <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
     <div class="shimmer" style="height:80px"></div>`;
   const ts=Date.now();
-  // Mehrere Server versuchen - open-meteo hat Probleme seit Mai 2026
+  // ICON-D2: Deutsches Wettermodell, 2km Auflösung, ideal für Schweiz/Schwarzwald
   const baseParams=`latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
-    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
-    +`&hourly=temperature_2m,weather_code,precipitation_probability`
-    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
+    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day,rain,snowfall,cloud_cover,visibility,uv_index`
+    +`&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,wind_speed_10m,uv_index`
+    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset`
+    +`&models=icon_seamless`
     +`&timezone=auto&forecast_days=7`;
 
   const servers=[
@@ -2080,18 +2224,27 @@ function renderWeather(d){
 
   const fc=dd.time.map((ds,i)=>{
     const dt=new Date(ds+'T12:00:00'),rain=dd.precipitation_sum[i];
+    const wind=dd.wind_speed_10m_max?.[i];
+    const uvDay=dd.uv_index_max?.[i];
     return`<div class="fcd ${i===0?'today':''}">
       <div class="fdn">${SDAYS[dt.getDay()]}</div>
       <div class="fdi">${wmoIcon(dd.weather_code[i])||'🌡️'}</div>
       <div class="fdh">${Math.round(dd.temperature_2m_max[i])}°</div>
       <div class="fdl">${Math.round(dd.temperature_2m_min[i])}°</div>
       ${rain>0.1?`<div class="fdr">${rain.toFixed(1)}mm</div>`:''}
+      ${wind?`<div class="fdr" style="color:var(--mu)">💨${Math.round(wind)}</div>`:''}
+      ${uvDay>=3?`<div class="fdr" style="color:${uvDay<=5?'var(--yel)':uvDay<=7?'var(--warm)':'var(--red)'}">UV${Math.round(uvDay)}</div>`:''}
     </div>`;
   }).join('');
 
   const windDeg = (c.wind_direction_10m !== undefined && c.wind_direction_10m !== null) ? c.wind_direction_10m : null;
   const windDirLabel = windDeg!==null ? ['N','NO','O','SO','S','SW','W','NW'][Math.round(windDeg/45)%8] : '';
   const windDirArrow = windDeg!==null ? `<span style="display:inline-block;transform:rotate(${windDeg}deg)">↑</span>` : '';
+  const uv = c.uv_index!==undefined ? Math.round(c.uv_index) : null;
+  const uvLabel = uv===null?'':uv<=2?'Niedrig':uv<=5?'Mittel':uv<=7?'Hoch':uv<=10?'Sehr hoch':'Extrem';
+  const vis = c.visibility!==undefined ? (c.visibility/1000).toFixed(0) : null;
+  const cloud = c.cloud_cover!==undefined ? Math.round(c.cloud_cover) : null;
+  const snow = c.snowfall!==undefined && c.snowfall>0 ? c.snowfall.toFixed(1) : null;
   if(bw) bw.innerHTML=`
     <div class="wn fi"><div class="wi">${ico}</div>
       <div><div class="wt">${Math.round(c.temperature_2m)}<span class="u">°C</span></div>
@@ -2103,7 +2256,10 @@ function renderWeather(d){
       <div class="wst"><div class="wv">${Math.round(c.wind_gusts_10m)}<small> km/h</small></div><div class="wl">Böen</div></div>
       <div class="wst"><div class="wv">${Math.round(c.surface_pressure)}<small> hPa</small></div><div class="wl">Luftdruck</div></div>
       <div class="wst"><div class="wv">${c.precipitation.toFixed(1)}<small> mm</small></div><div class="wl">Niederschlag</div></div>
-      <div class="wst"><div class="wv">${Math.round(c.apparent_temperature)}°<small>C</small></div><div class="wl">Gefühlt</div></div>
+      ${snow?`<div class="wst"><div class="wv">${snow}<small> cm</small></div><div class="wl">Schnee ❄️</div></div>`:''}
+      ${uv!==null?`<div class="wst"><div class="wv" style="color:${uv<=2?'var(--green)':uv<=5?'var(--yel)':uv<=7?'var(--warm)':'var(--red)'}">${uv}</div><div class="wl">UV · ${uvLabel}</div></div>`:''}
+      ${cloud!==null?`<div class="wst"><div class="wv">${cloud}%</div><div class="wl">Bewölkung ☁️</div></div>`:''}
+      ${vis!==null?`<div class="wst"><div class="wv">${vis}<small> km</small></div><div class="wl">Sichtweite</div></div>`:''}
     </div>
     <div class="sec-lbl">Stündliche Vorschau</div>
     <div class="hourly fi">${hHTML}</div>
@@ -2323,6 +2479,29 @@ function restartAutoRefresh(){
   clearInterval(window._ar);
   window._ar=setInterval(async()=>{try{await refreshAll();}catch(e){console.log('Refresh Fehler',e);}}, refreshMins*60*1000);
 }
+
+// ══════════════════════════════════════════════════════════════════
+// AUTO-SCALE
+// ══════════════════════════════════════════════════════════════════
+function autoScale(){
+  const w=window.innerWidth, h=window.innerHeight;
+  if(w<600){ document.documentElement.style.zoom=''; return; }
+  const radarOn=localStorage.getItem('ww_radar_on')==='1';
+  const naturalH=70+60+36+170+480+(radarOn?500:65)+40;
+  let scale=(h*0.99)/naturalH;
+  scale=Math.max(0.50,Math.min(1.05,scale));
+  // Zoom + Zentrierung: transform-origin center top verhindert Verschiebung
+  document.documentElement.style.zoom='';
+  document.documentElement.style.transformOrigin='top center';
+  document.documentElement.style.transform=`scale(${scale.toFixed(3)})`;
+  document.documentElement.style.width=(100/scale).toFixed(2)+'%';
+  document.documentElement.style.marginLeft='auto';
+  document.documentElement.style.marginRight='auto';
+  // Body ebenfalls zentrieren
+  document.body.style.minHeight=(100/scale).toFixed(2)+'vh';
+}
+autoScale();
+window.addEventListener('resize',autoScale);
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
