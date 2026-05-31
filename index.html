@@ -895,6 +895,8 @@ html,body{
     <div class="loc-row">
       <input class="loc-input" id="loc-input" placeholder="Ort suchen und hinzufügen…" autocomplete="off" autocorrect="off" spellcheck="false">
       <button class="loc-add" onclick="doLocSearch()">+ Suchen</button>
+      <button class="loc-add" onclick="getGPSLocation()" id="gps-btn" title="Meinen Standort ermitteln"
+        style="padding:8px 12px;font-size:14px;white-space:nowrap">📍</button>
       <div class="loc-dd" id="loc-dd"></div>
     </div>
   </div>
@@ -1796,7 +1798,20 @@ function renderChips(){
   const ll=document.getElementById('logo-loc');if(ll) ll.textContent=activeLoc.name;
   const wt=document.getElementById('w-title');if(wt) wt.textContent=`Wetter · ${activeLoc.name}`;
 }
-function selectLoc(i){ activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather(); setDocumentBg(colorToHex(bgColor)); }
+function updateRadarIframe(){
+  const iframe=document.querySelector('#radar-map-wrap iframe');
+  if(!iframe) return;
+  const lat=activeLoc.lat, lon=activeLoc.lon;
+  const name=activeLoc.name.toLowerCase().replace(/\s+/g,'-');
+  const nameEnc=encodeURIComponent(activeLoc.name);
+  iframe.src=`https://www.wetteronline.de/wetterradar/${name}?wrm=10.5&wry=${lat},${lon}&wrn=${nameEnc}&wrg=z4626&wrx=${lat},${lon}`;
+}
+
+function selectLoc(i){
+  activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather();
+  setDocumentBg(colorToHex(bgColor));
+  updateRadarIframe();
+}
 function delLoc(e,i){
   e.stopPropagation(); if(savedLocs.length<=1) return;
   const wasActive=savedLocs[i].name===activeLoc.name;
@@ -1808,6 +1823,37 @@ function delLoc(e,i){
 let locTimer=null;
 document.getElementById('loc-input').addEventListener('input',()=>{ clearTimeout(locTimer); locTimer=setTimeout(doLocSearch,500); });
 document.getElementById('loc-input').addEventListener('keydown',e=>{ if(e.key==='Enter') doLocSearch(); });
+
+async function getGPSLocation(){
+  const btn=document.getElementById('gps-btn');
+  if(!navigator.geolocation){ alert('GPS nicht verfügbar auf diesem Gerät'); return; }
+  btn.textContent='⏳'; btn.disabled=true;
+  navigator.geolocation.getCurrentPosition(
+    async(pos)=>{
+      const lat=pos.coords.latitude.toFixed(4);
+      const lon=pos.coords.longitude.toFixed(4);
+      btn.textContent='🔍';
+      // Ortsname per Reverse Geocoding ermitteln
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=de`);
+        const d=await r.json();
+        const name=d.address?.village||d.address?.town||d.address?.city||d.address?.county||'Mein Standort';
+        addLoc(parseFloat(lat),parseFloat(lon),name);
+        btn.textContent='✅'; setTimeout(()=>{ btn.textContent='📍'; btn.disabled=false; },2000);
+      }catch(e){
+        // Ohne Ortsname trotzdem hinzufügen
+        addLoc(parseFloat(lat),parseFloat(lon),'Mein Standort');
+        btn.textContent='✅'; setTimeout(()=>{ btn.textContent='📍'; btn.disabled=false; },2000);
+      }
+    },
+    (err)=>{
+      btn.textContent='❌'; btn.disabled=false;
+      setTimeout(()=>{ btn.textContent='📍'; },2000);
+      if(err.code===1) alert('Bitte GPS-Zugriff erlauben in den Browser-Einstellungen');
+    },
+    {enableHighAccuracy:true, timeout:10000}
+  );
+}
 
 async function doLocSearch(){
   const q=document.getElementById('loc-input').value.trim();
@@ -1840,6 +1886,7 @@ function addLoc(lat,lon,name){
   const ex=savedLocs.find(l=>l.name===name);
   if(ex){activeLoc=ex;}else{const nl={name,lat,lon};savedLocs.push(nl);saveLocs();activeLoc=nl;}
   saveActive(); renderChips(); loadWeather();
+  updateRadarIframe();
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('.loc-row') && !e.target.closest('.loc-dd'))
@@ -2080,11 +2127,12 @@ async function loadWeather(){
     <div class="shimmer" style="height:45px;margin-bottom:8px"></div>
     <div class="shimmer" style="height:80px"></div>`;
   const ts=Date.now();
-  // Mehrere Server versuchen - open-meteo hat Probleme seit Mai 2026
+  // ICON-D2: Deutsches Wettermodell, 2km Auflösung, ideal für Schweiz/Schwarzwald
   const baseParams=`latitude=${activeLoc.lat}&longitude=${activeLoc.lon}`
-    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day`
-    +`&hourly=temperature_2m,weather_code,precipitation_probability`
-    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum`
+    +`&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,precipitation,weather_code,is_day,rain,snowfall,cloud_cover,visibility,uv_index`
+    +`&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,wind_speed_10m,uv_index`
+    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,uv_index_max,sunrise,sunset`
+    +`&models=icon_seamless`
     +`&timezone=auto&forecast_days=7`;
 
   const servers=[
@@ -2176,18 +2224,27 @@ function renderWeather(d){
 
   const fc=dd.time.map((ds,i)=>{
     const dt=new Date(ds+'T12:00:00'),rain=dd.precipitation_sum[i];
+    const wind=dd.wind_speed_10m_max?.[i];
+    const uvDay=dd.uv_index_max?.[i];
     return`<div class="fcd ${i===0?'today':''}">
       <div class="fdn">${SDAYS[dt.getDay()]}</div>
       <div class="fdi">${wmoIcon(dd.weather_code[i])||'🌡️'}</div>
       <div class="fdh">${Math.round(dd.temperature_2m_max[i])}°</div>
       <div class="fdl">${Math.round(dd.temperature_2m_min[i])}°</div>
       ${rain>0.1?`<div class="fdr">${rain.toFixed(1)}mm</div>`:''}
+      ${wind?`<div class="fdr" style="color:var(--mu)">💨${Math.round(wind)}</div>`:''}
+      ${uvDay>=3?`<div class="fdr" style="color:${uvDay<=5?'var(--yel)':uvDay<=7?'var(--warm)':'var(--red)'}">UV${Math.round(uvDay)}</div>`:''}
     </div>`;
   }).join('');
 
   const windDeg = (c.wind_direction_10m !== undefined && c.wind_direction_10m !== null) ? c.wind_direction_10m : null;
   const windDirLabel = windDeg!==null ? ['N','NO','O','SO','S','SW','W','NW'][Math.round(windDeg/45)%8] : '';
   const windDirArrow = windDeg!==null ? `<span style="display:inline-block;transform:rotate(${windDeg}deg)">↑</span>` : '';
+  const uv = c.uv_index!==undefined ? Math.round(c.uv_index) : null;
+  const uvLabel = uv===null?'':uv<=2?'Niedrig':uv<=5?'Mittel':uv<=7?'Hoch':uv<=10?'Sehr hoch':'Extrem';
+  const vis = c.visibility!==undefined ? (c.visibility/1000).toFixed(0) : null;
+  const cloud = c.cloud_cover!==undefined ? Math.round(c.cloud_cover) : null;
+  const snow = c.snowfall!==undefined && c.snowfall>0 ? c.snowfall.toFixed(1) : null;
   if(bw) bw.innerHTML=`
     <div class="wn fi"><div class="wi">${ico}</div>
       <div><div class="wt">${Math.round(c.temperature_2m)}<span class="u">°C</span></div>
@@ -2199,7 +2256,10 @@ function renderWeather(d){
       <div class="wst"><div class="wv">${Math.round(c.wind_gusts_10m)}<small> km/h</small></div><div class="wl">Böen</div></div>
       <div class="wst"><div class="wv">${Math.round(c.surface_pressure)}<small> hPa</small></div><div class="wl">Luftdruck</div></div>
       <div class="wst"><div class="wv">${c.precipitation.toFixed(1)}<small> mm</small></div><div class="wl">Niederschlag</div></div>
-      <div class="wst"><div class="wv">${Math.round(c.apparent_temperature)}°<small>C</small></div><div class="wl">Gefühlt</div></div>
+      ${snow?`<div class="wst"><div class="wv">${snow}<small> cm</small></div><div class="wl">Schnee ❄️</div></div>`:''}
+      ${uv!==null?`<div class="wst"><div class="wv" style="color:${uv<=2?'var(--green)':uv<=5?'var(--yel)':uv<=7?'var(--warm)':'var(--red)'}">${uv}</div><div class="wl">UV · ${uvLabel}</div></div>`:''}
+      ${cloud!==null?`<div class="wst"><div class="wv">${cloud}%</div><div class="wl">Bewölkung ☁️</div></div>`:''}
+      ${vis!==null?`<div class="wst"><div class="wv">${vis}<small> km</small></div><div class="wl">Sichtweite</div></div>`:''}
     </div>
     <div class="sec-lbl">Stündliche Vorschau</div>
     <div class="hourly fi">${hHTML}</div>
