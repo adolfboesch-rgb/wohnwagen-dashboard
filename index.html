@@ -714,8 +714,10 @@ html,body{
 }
 
 
-/* Wetterradar: WetterOnline iframe */
+/* Wetterradar: WetterOnline / WO-Cloud iframe */
 #rv-iframe{width:100%;height:420px;border:none;border-radius:12px;display:block;background:#08111f;}
+.radar-open{color:var(--ac);text-decoration:none;font-family:var(--mono);font-size:10px;margin-left:6px;opacity:.85}
+.radar-open:hover{opacity:1;text-decoration:underline}
 
 </style>
 
@@ -1711,9 +1713,11 @@ function renderCards(){
 }
 
 function radarIframeUrl(){
-  const lat=Number(activeLoc.lat).toFixed(4);
-  const lon=Number(activeLoc.lon).toFixed(4);
-  return `https://www.wetteronline.ch/wetterradar?lat=${lat}&lon=${lon}`;
+  // WetterOnline selbst blockiert/redirectet im iframe oft.
+  // Die WO-Cloud-Interactive-Ansicht ist für Dashboards/iframes geeignet.
+  const lat=Number(activeLoc.lat).toFixed(5);
+  const lon=Number(activeLoc.lon).toFixed(5);
+  return `https://radar.wo-cloud.com/desktop/wr/interactive?wrx=${lat},${lon}&wrm=8&wro=true&wrf=true`;
 }
 
 function renderRadarCard(){
@@ -1724,6 +1728,7 @@ function renderRadarCard(){
       <div style="font-size:14px">🛰️</div>
       <div class="ct" id="radar-title">Wetterradar · ${activeLoc.name}</div>
       <div class="tag">WetterOnline</div>
+      <a class="radar-open" href="${radarIframeUrl()}" target="_blank" rel="noopener">↗ öffnen</a>
       <button id="radar-toggle-btn" onclick="toggleRadar()"
         style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
         font-family:var(--mono);font-size:11px;font-weight:700;
@@ -1737,7 +1742,8 @@ function renderRadarCard(){
         src="${radarOn ? radarIframeUrl() : ''}"
         loading="lazy"
         allowfullscreen
-        sandbox="allow-scripts allow-same-origin allow-popups">
+        referrerpolicy="no-referrer-when-downgrade"
+        allow="fullscreen; geolocation">
       </iframe>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
