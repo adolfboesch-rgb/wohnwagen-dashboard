@@ -714,7 +714,7 @@ html,body{
 }
 
 
-/* Wetterradar: RainViewer + Leaflet – übernimmt den gewählten Standort */
+/* Wetterradar: WetterOnline + Leaflet – übernimmt den gewählten Standort */
 #rv-map{width:100%;height:420px;border-radius:12px;background:#08111f;z-index:1}
 #rv-status{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(3,7,18,.82);border:1px solid var(--b2);border-radius:8px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--tx)}
 #rv-fallback{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(8,17,31,.88);font-family:var(--mono);font-size:12px;color:var(--mu);line-height:1.5}
@@ -724,12 +724,205 @@ html,body{
 .leaflet-control-attribution a{color:var(--ac)!important}
 .leaflet-control-zoom a{background:rgba(3,105,161,.92)!important;color:white!important;border-color:rgba(255,255,255,.12)!important}
 
+
+/* Wetterradar per WetterOnline-Embed: stabil, kein WetterOnline/Leaflet Zoom-Level-Fehler */
+#rv-map{
+  width:100%;
+  height:420px;
+  border-radius:12px;
+  background:#08111f;
+  overflow:hidden;
+  position:relative;
+  z-index:1;
+}
+#rv-map iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  border-radius:12px;
+}
+#rv-status{display:none!important}
+.radar-pin-overlay{
+  position:absolute;
+  left:50%;
+  top:48%;
+  transform:translate(-50%,-100%);
+  z-index:5;
+  pointer-events:none;
+}
+.radar-pin-dot{
+  width:26px;
+  height:26px;
+  background:#ef4444;
+  border:3px solid #fff;
+  border-radius:50%;
+  box-shadow:0 2px 10px rgba(0,0,0,.55),0 0 12px rgba(239,68,68,.65);
+  position:relative;
+}
+.radar-pin-dot:after{
+  content:'';
+  position:absolute;
+  left:9px;
+  top:22px;
+  width:4px;
+  height:34px;
+  background:rgba(255,255,255,.75);
+  box-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+.radar-pin-name{
+  position:absolute;
+  left:50%;
+  top:-32px;
+  transform:translateX(-50%);
+  background:#111827;
+  color:#fff;
+  border-radius:7px;
+  padding:4px 8px;
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+
+
+/* Wetterradar Optik-Fix: farbiger, ruhiger, Pin sauberer */
+#rv-map{
+  width:100%;
+  height:420px;
+  border-radius:12px;
+  background:#08111f;
+  overflow:hidden;
+  position:relative;
+  z-index:1;
+}
+#rv-map iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  border-radius:12px;
+  filter:saturate(1.25) contrast(1.08) brightness(1.08);
+}
+.radar-pin-overlay{
+  position:absolute;
+  left:50%;
+  top:47%;
+  transform:translate(-50%,-100%);
+  z-index:5;
+  pointer-events:none;
+}
+.radar-pin-dot{
+  width:24px;
+  height:24px;
+  background:radial-gradient(circle at 35% 30%, #ff7b7b 0 18%, #ef4444 42%, #b91c1c 100%);
+  border:3px solid #fff;
+  border-radius:50%;
+  box-shadow:0 2px 10px rgba(0,0,0,.55),0 0 12px rgba(239,68,68,.7);
+  position:relative;
+}
+.radar-pin-dot:after{
+  content:'';
+  position:absolute;
+  left:8px;
+  top:21px;
+  width:4px;
+  height:30px;
+  background:linear-gradient(to bottom,rgba(255,255,255,.9),rgba(255,255,255,.25));
+  box-shadow:0 2px 5px rgba(0,0,0,.55);
+}
+.radar-pin-name{
+  position:absolute;
+  left:50%;
+  top:-34px;
+  transform:translateX(-50%);
+  background:#111827;
+  color:#fff;
+  border-radius:7px;
+  padding:5px 9px;
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.45);
+}
+.radar-pin-name:after{
+  content:'';
+  position:absolute;
+  left:50%;
+  bottom:-5px;
+  transform:translateX(-50%);
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:5px solid #111827;
+}
+
+
+/* WetterOnline Radar eingebettet */
+#rv-map{
+  width:100%;
+  height:420px;
+  border-radius:12px;
+  background:#08111f;
+  overflow:hidden;
+  position:relative;
+  z-index:1;
+}
+#rv-map iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  border-radius:12px;
+  background:#08111f;
+}
+.wo-radar-frame-wrap{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  border-radius:12px;
+  position:relative;
+}
+#rv-status{display:none!important}
+.radar-pin-overlay{
+  display:none!important;
+}
+
+
+/* WetterOnline enger zuschneiden - weniger weiße Ränder */
+.wo-radar-frame-wrap{
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  height:420px;
+}
+#rv-map iframe{
+  position:absolute;
+  top:-120px;
+  left:-10px;
+  width:calc(100% + 20px);
+  height:650px;
+  border:0;
+}
+
+
+/* Radar ein-/ausblenden */
+.radar-hidden{
+  display:none !important;
+}
+
+
+#radar-toggle-global.active{
+  color:var(--red);
+  border-color:rgba(248,113,113,.35);
+  background:rgba(248,113,113,.12);
+}
+
 </style>
 
-<!-- RainViewer/Leaflet Wetterradar -->
+<!-- WetterOnline/Leaflet Wetterradar -->
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -899,6 +1092,7 @@ html,body{
       </div>
       <button class="hdr-btn fs-btn" onclick="toggleFS()" title="Vollbild">⛶</button>
       <button class="hdr-btn" id="rot-btn" onclick="toggleRotate()" title="Ansicht drehen">🔄</button>
+      <button class="hdr-btn" id="radar-toggle-global" onclick="toggleRadarVisibility()" title="Wetterradar ein-/ausblenden">🛰️</button>
       <button class="hdr-btn" onclick="openSP()" title="Einstellungen">⚙️</button>
     </div>
   </div>
@@ -1021,7 +1215,7 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // STATE
 // ══════════════════════════════════════════════════════════════════
 // Versions-Check: Bei neuer App-Version localStorage zurücksetzen
-const APP_VERSION = '2026-05-29-v2';
+const APP_VERSION = '2026-06-01-wetteronline-koordinatenfix';
 if(localStorage.getItem('ww_app_version') !== APP_VERSION){
   localStorage.removeItem('ww_locs_v5');
   localStorage.removeItem('ww_active_v5');
@@ -1711,7 +1905,7 @@ function renderCards(){
   for(const k of cardOrder){
     if(specialKeys.includes(k)){
       if(sensorBuf.length){ html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`; sensorBuf=[]; }
-      html+= k==='wetter' ? renderWeatherCard() : renderRadarCard();
+      html+= k==='wetter' ? renderWeatherCard() : renderStableRadarCard();
     } else { sensorBuf.push(k); }
   }
   if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
@@ -1728,34 +1922,8 @@ function radarExternalUrl(){
   return `https://www.rainviewer.com/map.html?loc=${lat},${lon},8&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=1&o=83&lm=1`;
 }
 
-function renderRadarCard(){
-  const radarOn = localStorage.getItem('ww_radar_on')==='1';
-  return`<div class="card" id="card-radar" style="position:relative;overflow:hidden;padding:12px">
-    <div class="cal as"></div>
-    <div class="ch" style="margin-bottom:8px">
-      <div style="font-size:14px">🛰️</div>
-      <div class="ct" id="radar-title">Wetterradar · ${activeLoc.name}</div>
-      <div class="tag">RainViewer</div>
-      <a class="radar-open" id="radar-open-link" href="${radarExternalUrl()}" target="_blank" rel="noopener">↗ öffnen</a>
-      <button id="radar-toggle-btn" onclick="toggleRadar()"
-        style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
-        font-family:var(--mono);font-size:11px;font-weight:700;
-        background:${radarOn?'#0369a1':'rgba(255,255,255,0.08)'};
-        color:${radarOn?'#fff':'var(--mu)'}">
-        ${radarOn?'● Ausblenden':'○ Einblenden'}
-      </button>
-    </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
-      <div id="rv-map"></div>
-      <div id="rv-status">Radar lädt…</div>
-      <div id="rv-fallback">Radar konnte nicht geladen werden.<br>
-        <a id="rv-open-fallback" href="${radarExternalUrl()}" target="_blank" rel="noopener">Radar extern öffnen</a>
-      </div>
-    </div>
-    <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
-      Radar ausgeblendet · Tippe Einblenden
-    </div>
-  </div>`;}
+/* renderStableRadarCard ersetzt durch WetterOnline Radar */
+
 
 let radarMap=null, radarLayer=null, radarMarker=null, radarFrames=[], radarAnimIdx=0, radarAnimTimer=null;
 
@@ -1768,9 +1936,9 @@ function showRadarFallback(show){
   if(fb) fb.style.display=show?'flex':'none';
 }
 
-async function loadRainViewerFrames(){
+async function loadWetterOnlineFrames(){
   const r=await fetch('https://api.rainviewer.com/public/weather-maps.json?_=' + Date.now(), {cache:'no-store'});
-  if(!r.ok) throw new Error('RainViewer API nicht erreichbar');
+  if(!r.ok) throw new Error('WetterOnline API nicht erreichbar');
   const d=await r.json();
   const frames=[...(d.radar?.past||[]), ...(d.radar?.nowcast||[])];
   if(!frames.length) throw new Error('Keine Radarbilder verfügbar');
@@ -1784,7 +1952,7 @@ function setRadarFrame(idx){
   const f=radarFrames[radarAnimIdx];
   const url=`https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`;
   if(radarLayer) radarMap.removeLayer(radarLayer);
-  radarLayer=L.tileLayer(url,{opacity:.72,zIndex:10,attribution:'RainViewer'});
+  radarLayer=L.tileLayer(url,{opacity:.72,zIndex:10,attribution:'WetterOnline'});
   radarLayer.addTo(radarMap);
   const t=f.time ? new Date(f.time*1000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '';
   setRadarStatus(t ? `Radar ${t} · ${activeLoc.name}` : `Radar · ${activeLoc.name}`);
@@ -1845,7 +2013,7 @@ async function initRadarMap(){
   setTimeout(()=>radarMap.invalidateSize(),150);
 
   try{
-    if(!radarFrames.length) await loadRainViewerFrames();
+    if(!radarFrames.length) await loadWetterOnlineFrames();
     startRadarAnimation();
   }catch(e){
     console.warn('Radar Fehler', e);
@@ -1950,7 +2118,8 @@ function updateRadarIframe(){
 }
 
 function selectLoc(i){
-  activeLoc=savedLocs[i]; saveActive(); renderChips(); loadWeather();
+  activeLoc=savedLocs[i]; saveActive(); setTimeout(initStableRadar, 200);
+renderChips(); loadWeather();
   setDocumentBg(colorToHex(bgColor));
   updateRadarIframe();
 }
@@ -1958,7 +2127,8 @@ function delLoc(e,i){
   e.stopPropagation(); if(savedLocs.length<=1) return;
   const wasActive=savedLocs[i].name===activeLoc.name;
   savedLocs.splice(i,1); saveLocs();
-  if(wasActive){ activeLoc=savedLocs[0]; saveActive(); }
+  if(wasActive){ activeLoc=savedLocs[0]; saveActive(); setTimeout(initStableRadar, 200);
+}
   renderChips(); if(wasActive) loadWeather();
 }
 
@@ -2027,7 +2197,8 @@ function addLoc(lat,lon,name){
   document.getElementById('loc-input').value='';
   const ex=savedLocs.find(l=>l.name===name);
   if(ex){activeLoc=ex;}else{const nl={name,lat,lon};savedLocs.push(nl);saveLocs();activeLoc=nl;}
-  saveActive(); renderChips(); loadWeather();
+  saveActive(); setTimeout(initStableRadar, 200);
+renderChips(); loadWeather();
   updateRadarIframe();
 }
 document.addEventListener('click',e=>{
@@ -2684,6 +2855,171 @@ setInterval(()=>{
 document.addEventListener('click',()=>{
   if(!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(()=>{}); }
 },{once:true});
+
+
+// ══════════════════════════════════════════════════════════════════
+// STABILES WETTERRADAR: iframe statt WetterOnline/Leaflet Tiles
+// Keine "Zoom Level Not Supported"-Kacheln mehr.
+// ══════════════════════════════════════════════════════════════════
+/* radarEmbedUrl ersetzt durch WetterOnline Radar */
+
+
+/* renderStableRadarCard ersetzt durch WetterOnline Radar */
+
+
+/* initStableRadar ersetzt durch WetterOnline Radar */
+
+
+/* openRadarExternal ersetzt durch WetterOnline Radar */
+
+
+
+// radar-card-autofix
+setInterval(()=>{
+  const card = document.getElementById('card-radar');
+  if(card && !document.getElementById('rv-iframe')){
+    card.outerHTML = renderStableRadarCard();
+  }
+  if(document.getElementById('rv-iframe')) initStableRadar();
+}, 3000);
+setTimeout(()=>{ 
+  const card = document.getElementById('card-radar');
+  if(card && !document.getElementById('rv-iframe')) card.outerHTML = renderStableRadarCard();
+  initStableRadar();
+}, 800);
+
+
+// ══════════════════════════════════════════════════════════════════
+// WETTERONLINE RADAR: ersetzt WetterOnline/WetterOnline
+// ══════════════════════════════════════════════════════════════════
+/* wetterOnlineRadarUrl ersetzt */
+
+
+function renderStableRadarCard(){
+  const loc = activeLoc || savedLocs[0] || {name:'Schluchsee'};
+  const nm = (typeof esc === 'function') ? esc(loc.name) : String(loc.name || 'Standort');
+  return `
+    <div class="card fi" id="card-radar">
+      <div class="cal as"></div>
+      <div class="ch">
+        <span class="dot live"></span>
+        <span class="ct">Wetterradar · ${nm}</span>
+        <span class="tag">WetterOnline</span>
+        <button class="rbtn" onclick="openRadarExternal()" style="padding:3px 8px;font-size:9px">↗ Öffnen</button>
+      </div>
+      <div id="rv-map">
+        <div class="wo-radar-frame-wrap">
+          <iframe id="rv-iframe" src="${wetterOnlineRadarUrl()}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* initStableRadar ersetzt */
+
+
+/* openRadarExternal ersetzt */
+
+
+// Kompatibilität zu alten Aufrufen
+function initRadar(){ initStableRadar(); }
+function loadRadar(){ initStableRadar(); }
+function refreshRadar(){ initStableRadar(); }
+
+
+// wetteronline-radar-autostart
+setTimeout(()=>{ 
+  const card = document.getElementById('card-radar');
+  if(card && !document.getElementById('rv-iframe')) card.outerHTML = renderStableRadarCard();
+  initStableRadar();
+}, 800);
+setInterval(()=>{ if(document.getElementById('rv-iframe')) initStableRadar(); }, 10000);
+
+
+function wetterOnlineRadarUrl(){
+  const loc = activeLoc || savedLocs[0] || {name:'Schluchsee',lat:47.819,lon:8.186};
+  const name = String(loc.name || 'Schluchsee').trim().toLowerCase();
+
+  // Direkte WetterOnline-Ortsseiten funktionieren nur mit bekannten Slugs.
+  // Diese Zuordnung sorgt dafür, dass deine gespeicherten Standardorte sicher wechseln.
+  const known = {
+    'schluchsee': 'https://www.wetteronline.ch/wetterradar/schluchsee/aha?wrm=8',
+    'dielsdorf': 'https://www.wetteronline.ch/wetterradar/dielsdorf?wrm=8'
+  };
+
+  if(known[name]) return known[name];
+
+  // Für neu hinzugefügte Orte: WetterOnline-Suche öffnen/anzeigen.
+  // Im iframe kann WetterOnline je nach Ort blockieren; extern funktioniert es zuverlässiger.
+  const q = encodeURIComponent(loc.name || 'Schweiz');
+  return `https://www.wetteronline.ch/suche?search=${q}`;
+}
+
+function initStableRadar(){
+  const iframe = document.getElementById('rv-iframe');
+  const loc = activeLoc || savedLocs[0] || {name:'Schluchsee'};
+
+  if(iframe){
+    const url = wetterOnlineRadarUrl();
+    const current = iframe.getAttribute('data-current-url') || '';
+    if(current !== url){
+      iframe.setAttribute('data-current-url', url);
+      iframe.src = url;
+    }
+  }
+
+  const title = document.querySelector('#card-radar .ct');
+  if(title) title.textContent = `Wetterradar · ${loc.name}`;
+
+  const btn = document.querySelector('#card-radar .rbtn');
+  if(btn) btn.title = `Radar für ${loc.name} öffnen`;
+}
+
+function openRadarExternal(){
+  const loc = activeLoc || savedLocs[0] || {name:'Schluchsee'};
+  window.open(wetterOnlineRadarUrl(), '_blank');
+}
+
+// Direkt beim Ortswechsel nutzbar
+function refreshRadarForActiveLocation(){
+  initStableRadar();
+}
+
+
+// wetteronline-location-autoupdate
+setInterval(()=>{ 
+  if(document.getElementById('rv-iframe')) initStableRadar(); 
+}, 2000);
+
+
+
+function updateRadarToggleButton(){
+  const btn = document.getElementById('radar-toggle-global');
+  const hidden = localStorage.getItem('ww_radar_hidden') === '1';
+  if(btn){
+    btn.textContent = hidden ? '🛰️+' : '🛰️';
+    btn.title = hidden ? 'Wetterradar anzeigen' : 'Wetterradar ausblenden';
+    btn.classList.toggle('active', hidden);
+  }
+}
+
+function applyRadarVisibility(){
+  const radar = document.getElementById('card-radar');
+  const hidden = localStorage.getItem('ww_radar_hidden') === '1';
+  if(radar) radar.classList.toggle('radar-hidden', hidden);
+  updateRadarToggleButton();
+}
+
+function toggleRadarVisibility(){
+  const hidden = localStorage.getItem('ww_radar_hidden') === '1';
+  localStorage.setItem('ww_radar_hidden', hidden ? '0' : '1');
+  applyRadarVisibility();
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(applyRadarVisibility, 500);
+  setInterval(applyRadarVisibility, 2000);
+});
 
 </script>
 </body>
