@@ -1717,8 +1717,12 @@ function renderCards(){
     } else { sensorBuf.push(k); }
   }
   if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
+  // Leaflet-Instanz zerstören bevor das DOM ersetzt wird
+  if(radarMap){ try{ radarMap.remove(); }catch(e){} radarMap=null; radarLayer=null; }
   container.innerHTML=html;
-  initRadarMap();
+  // DOM erst rendern lassen, dann Karte initialisieren
+  // Zwei requestAnimationFrame + Timeout: sicherstellt dass Browser wirklich gerendert hat
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(initRadarMap, 200)));
 }
 
 function renderRadarCard(){
@@ -1737,7 +1741,7 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;overflow:hidden;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
+    <div id="radar-map-wrap" style="border-radius:12px;height:${radarOn?'420px':'0px'};transition:height .4s ease;position:relative">
       <div id="rv-map"></div>
       <div id="rv-status">Radar lädt…</div>
       <div id="rv-fallback">Radar konnte nicht geladen werden.<br>
@@ -1765,7 +1769,8 @@ function toggleRadar(){
     wrap.style.height='420px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
-    setTimeout(initRadarMap, 150);
+    // Warten bis CSS height-Animation fertig (400ms) + rAF für echten Layout-Paint
+    setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(initRadarMap)), 420);
   }
   setTimeout(autoScale, 500);
 }
@@ -1781,6 +1786,12 @@ async function initRadarMap(){
     if(fallback) fallback.style.display='block';
     return;
   }
+  // Explizite Pixelbreite setzen – verhindert zerrissene Karte auf Mobile
+  // (Leaflet berechnet Kacheln falsch wenn Container overflow:hidden hat)
+  const mapW = wrap.offsetWidth || window.innerWidth;
+  mapEl.style.width  = mapW + 'px';
+  mapEl.style.height = '420px';
+
   const lat=Number(activeLoc.lat), lon=Number(activeLoc.lon);
   const link=document.getElementById('rv-open-link');
   if(link) link.href=`https://www.rainviewer.com/map.html?loc=${lat},${lon},8`;
@@ -1795,7 +1806,9 @@ async function initRadarMap(){
   } else {
     radarMap.setView([lat,lon],8);
   }
-  setTimeout(()=>radarMap.invalidateSize(),250);
+  // Nach Layout-Paint: Breite zurücksetzen auf 100% und Größe neu berechnen
+  setTimeout(()=>{ mapEl.style.width='100%'; radarMap.invalidateSize({animate:false}); }, 350);
+  setTimeout(()=>radarMap.invalidateSize({animate:false}), 900);
   try{
     const res=await fetch('https://api.rainviewer.com/public/weather-maps.json',{cache:'no-store'});
     if(!res.ok) throw new Error('Radar API nicht erreichbar');
@@ -1805,7 +1818,7 @@ async function initRadarMap(){
     const frame=radarFrames[radarFrames.length-1];
     const url=`${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
     if(radarLayer) radarMap.removeLayer(radarLayer);
-    radarLayer=L.tileLayer(url,{tileSize:256,opacity:.72,zIndex:10,maxZoom:7,attribution:'Radar © RainViewer'}).addTo(radarMap);
+    radarLayer=L.tileLayer(url,{tileSize:256,opacity:.72,zIndex:10,maxZoom:14,attribution:'Radar © RainViewer'}).addTo(radarMap);
     if(status){
       const t=new Date(frame.time*1000).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
       status.textContent=`Radar ${t} · ${activeLoc.name}`;
