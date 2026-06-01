@@ -921,56 +921,138 @@ html,body{
 
 
 /* =========================================================
-   FINAL: Größere Ansicht ohne Abschneiden
-   Chrome/Edge: CSS zoom vergrößert echte Darstellung sauber.
+   KOPIERBLOCK FINAL – Darstellung sauber grösser
+   Einfügen direkt VOR </style>
    ========================================================= */
 
+/* Desktop/Laptop: Dashboard fast volle Breite, ohne Browser-Zoom und ohne Abschneiden */
 html, body{
-  width:100%;
-  max-width:100vw;
-  overflow-x:hidden!important;
+  width:100% !important;
+  max-width:100vw !important;
+  overflow-x:hidden !important;
+  background:var(--bg-hex,#060d1a) !important;
+}
+
+body{
+  align-items:center !important;
 }
 
 .content{
-  max-width:1400px!important;
-  width:100%!important;
-  margin:0 auto!important;
-  transform:none!important;
+  width:96vw !important;
+  max-width:1720px !important;
+  min-width:0 !important;
+  margin:0 auto !important;
+  transform:none !important;
+  zoom:1 !important;
 }
 
-/* Große Monitore / PC */
-@media (min-width:1500px){
-  .content{
-    zoom:1.22;
-  }
+.grid{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 auto !important;
+  padding-left:14px !important;
+  padding-right:14px !important;
 }
 
-/* Laptop / normaler Desktop */
-@media (min-width:1100px) and (max-width:1499px){
-  .content{
-    zoom:1.10;
-  }
+.header,
+.loc-bar,
+.sb{
+  width:100% !important;
 }
 
-/* Tablet und Natel nicht künstlich zoomen */
-@media (max-width:1099px){
-  .content{
-    zoom:1;
-    max-width:100%!important;
-  }
+.sensor-row{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:16px !important;
 }
 
-/* Radar AUS: ganze Karte weg, kein leerer Platz */
+#card-wetter,
+#card-radar{
+  width:100% !important;
+}
+
+/* Radar aus: ganze Karte verschwindet, kein leerer Platz */
 .radar-hidden,
 body.radar-off #card-radar{
-  display:none!important;
-  height:0!important;
-  min-height:0!important;
-  max-height:0!important;
-  margin:0!important;
-  padding:0!important;
-  border:0!important;
-  overflow:hidden!important;
+  display:none !important;
+  height:0 !important;
+  min-height:0 !important;
+  max-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  overflow:hidden !important;
+}
+
+/* Sehr grosse Bildschirme: noch etwas breiter */
+@media (min-width:1800px){
+  .content{
+    width:94vw !important;
+    max-width:1760px !important;
+  }
+}
+
+/* Laptop */
+@media (min-width:1000px) and (max-width:1399px){
+  .content{
+    width:96vw !important;
+    max-width:none !important;
+  }
+}
+
+/* Tablet */
+@media (min-width:600px) and (max-width:999px){
+  .content{
+    width:100vw !important;
+    max-width:none !important;
+  }
+  .grid{
+    padding:10px !important;
+  }
+  .sensor-row{
+    grid-template-columns:1fr !important;
+  }
+  .sensor-row .card{
+    height:auto !important;
+    min-height:120px !important;
+    max-height:none !important;
+  }
+}
+
+/* Natel */
+@media (max-width:599px){
+  .content{
+    width:100vw !important;
+    max-width:none !important;
+  }
+  .header{
+    position:relative !important;
+    padding:8px !important;
+  }
+  .hdr-right{
+    width:100% !important;
+    justify-content:space-between !important;
+  }
+  #clock{
+    font-size:30px !important;
+  }
+  .grid{
+    padding:8px !important;
+  }
+  .sensor-row{
+    grid-template-columns:1fr !important;
+  }
+  .card,
+  .sensor-row .card{
+    height:auto !important;
+    min-height:auto !important;
+    max-height:none !important;
+  }
+  .ws{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+  .fc{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
 }
 
 </style>
@@ -3063,7 +3145,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 
 // =========================================================
-// FINALER RADAR-TOGGLE
+// KOPIERBLOCK FINAL – Radar ein/aus
+// Einfügen direkt VOR </script>
 // =========================================================
 function updateRadarToggleButton(){
   const btn = document.getElementById('radar-toggle-global');
