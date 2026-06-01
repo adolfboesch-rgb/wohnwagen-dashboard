@@ -1788,7 +1788,8 @@ async function initRadarMap(){
   }
   // Explizite Pixelbreite setzen – verhindert zerrissene Karte auf Mobile
   // (Leaflet berechnet Kacheln falsch wenn Container overflow:hidden hat)
-  const mapW = wrap.offsetWidth || window.innerWidth;
+  // getBoundingClientRect() gibt die echte angezeigte Breite zurück (korrekt bei CSS transform:scale)
+  const mapW = Math.round(wrap.getBoundingClientRect().width) || window.innerWidth;
   mapEl.style.width  = mapW + 'px';
   mapEl.style.height = '420px';
 
@@ -2575,6 +2576,18 @@ function autoScale(){
   document.documentElement.style.marginRight='auto';
   // Body ebenfalls zentrieren
   document.body.style.minHeight=(100/scale).toFixed(2)+'vh';
+  // Leaflet nach Scale neu berechnen – CSS transform verfälscht offsetWidth
+  if(radarMap){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const mapEl=document.getElementById('rv-map');
+      if(mapEl){
+        const realW=Math.round(mapEl.getBoundingClientRect().width);
+        mapEl.style.width=realW+'px';
+        radarMap.invalidateSize({animate:false});
+        setTimeout(()=>{mapEl.style.width='100%';radarMap.invalidateSize({animate:false});},100);
+      }
+    }));
+  }
 }
 autoScale();
 window.addEventListener('resize',autoScale);
