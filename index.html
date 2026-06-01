@@ -919,6 +919,106 @@ html,body{
   background:rgba(248,113,113,.12);
 }
 
+
+/* =========================================================
+   FINALER BREITEN-FIX
+   Dashboard nutzt den Bildschirm besser, ohne Zoom/Abschneiden.
+   ========================================================= */
+
+html,body{
+  width:100%;
+  max-width:100vw;
+  overflow-x:hidden!important;
+}
+
+.content{
+  width:min(96vw, 1900px)!important;
+  max-width:1900px!important;
+  margin:0 auto!important;
+  transform:none!important;
+}
+
+.grid{
+  width:100%!important;
+  max-width:1900px!important;
+  margin:0 auto!important;
+  padding-left:14px!important;
+  padding-right:14px!important;
+}
+
+.sensor-row{
+  grid-template-columns:repeat(3,1fr)!important;
+  gap:16px!important;
+}
+
+/* Radar AUS: Karte komplett weg, kein leerer Platz */
+.radar-hidden,
+body.radar-off #card-radar{
+  display:none!important;
+  height:0!important;
+  min-height:0!important;
+  max-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  overflow:hidden!important;
+}
+
+/* Laptop / kleiner PC */
+@media (max-width:1300px){
+  .content{
+    width:96vw!important;
+    max-width:none!important;
+  }
+  .grid{
+    max-width:none!important;
+  }
+}
+
+/* Tablet */
+@media (max-width:899px){
+  .content{
+    width:100vw!important;
+    max-width:none!important;
+  }
+  .grid{
+    padding:10px!important;
+  }
+  .sensor-row{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* Natel */
+@media (max-width:599px){
+  .content{
+    width:100vw!important;
+  }
+  .header{
+    position:relative!important;
+    padding:8px!important;
+  }
+  .hdr-right{
+    width:100%!important;
+    justify-content:space-between!important;
+  }
+  #clock{
+    font-size:30px!important;
+  }
+  .grid{
+    padding:8px!important;
+  }
+  .sensor-row{
+    grid-template-columns:1fr!important;
+  }
+  .card,
+  .sensor-row .card{
+    height:auto!important;
+    min-height:auto!important;
+    max-height:none!important;
+  }
+}
+
 </style>
 
 <!-- WetterOnline/Leaflet Wetterradar -->
@@ -2993,6 +3093,24 @@ setInterval(()=>{
 
 
 
+/* alte updateRadarToggleButton-Funktion ersetzt */
+
+
+/* alte applyRadarVisibility-Funktion ersetzt */
+
+
+/* alte toggleRadarVisibility-Funktion ersetzt */
+
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(applyRadarVisibility, 500);
+  setInterval(applyRadarVisibility, 2000);
+});
+
+
+// =========================================================
+// FINALER RADAR-TOGGLE
+// =========================================================
 function updateRadarToggleButton(){
   const btn = document.getElementById('radar-toggle-global');
   const hidden = localStorage.getItem('ww_radar_hidden') === '1';
@@ -3004,8 +3122,9 @@ function updateRadarToggleButton(){
 }
 
 function applyRadarVisibility(){
-  const radar = document.getElementById('card-radar');
   const hidden = localStorage.getItem('ww_radar_hidden') === '1';
+  const radar = document.getElementById('card-radar');
+  document.body.classList.toggle('radar-off', hidden);
   if(radar) radar.classList.toggle('radar-hidden', hidden);
   updateRadarToggleButton();
 }
@@ -3017,9 +3136,10 @@ function toggleRadarVisibility(){
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  setTimeout(applyRadarVisibility, 500);
-  setInterval(applyRadarVisibility, 2000);
+  setTimeout(applyRadarVisibility, 300);
+  setTimeout(applyRadarVisibility, 1200);
 });
+setInterval(applyRadarVisibility, 2500);
 
 </script>
 </body>
