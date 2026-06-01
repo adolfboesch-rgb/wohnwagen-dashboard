@@ -724,24 +724,6 @@ html,body{
 .leaflet-control-attribution a{color:var(--ac)!important}
 .leaflet-control-zoom a{background:rgba(3,105,161,.92)!important;color:white!important;border-color:rgba(255,255,255,.12)!important}
 
-
-/* Standort-Pin im Wetterradar: deutlich sichtbar mit Ortsname */
-.radar-pin{
-  width:26px; height:26px; border-radius:50% 50% 50% 0;
-  background:#ef4444; transform:rotate(-45deg);
-  border:3px solid #fff; box-shadow:0 3px 12px rgba(0,0,0,.55);
-}
-.radar-pin::after{
-  content:''; position:absolute; width:8px; height:8px; border-radius:50%;
-  background:#fff; left:6px; top:6px;
-}
-.radar-place-label{
-  background:rgba(3,7,18,.88)!important; color:#fff!important; border:1px solid rgba(255,255,255,.35)!important;
-  border-radius:9px!important; padding:5px 8px!important; font-family:var(--mono)!important;
-  font-size:12px!important; font-weight:700!important; box-shadow:0 2px 10px rgba(0,0,0,.45)!important;
-}
-.radar-place-label::before{display:none!important}
-
 </style>
 
 <!-- RainViewer/Leaflet Wetterradar -->
@@ -1039,7 +1021,7 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // STATE
 // ══════════════════════════════════════════════════════════════════
 // Versions-Check: Bei neuer App-Version localStorage zurücksetzen
-const APP_VERSION = '2026-06-01-radar-pin-v1';
+const APP_VERSION = '2026-05-29-v2';
 if(localStorage.getItem('ww_app_version') !== APP_VERSION){
   localStorage.removeItem('ww_locs_v5');
   localStorage.removeItem('ww_active_v5');
@@ -1743,7 +1725,7 @@ function renderCards(){
 function radarExternalUrl(){
   const lat=Number(activeLoc.lat).toFixed(5);
   const lon=Number(activeLoc.lon).toFixed(5);
-  return `https://www.rainviewer.com/map.html?loc=${lat},${lon},10&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=1&o=83&lm=1`;
+  return `https://www.rainviewer.com/map.html?loc=${lat},${lon},8&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=1&o=83&lm=1`;
 }
 
 function renderRadarCard(){
@@ -1805,7 +1787,7 @@ function setRadarFrame(idx){
   radarLayer=L.tileLayer(url,{opacity:.72,zIndex:10,attribution:'RainViewer'});
   radarLayer.addTo(radarMap);
   const t=f.time ? new Date(f.time*1000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '';
-  setRadarStatus(t ? `Radar ${t} · Standort: ${activeLoc.name}` : `Radar · Standort: ${activeLoc.name}`);
+  setRadarStatus(t ? `Radar ${t} · ${activeLoc.name}` : `Radar · ${activeLoc.name}`);
 }
 
 function startRadarAnimation(){
@@ -1838,22 +1820,25 @@ async function initRadarMap(){
       scrollWheelZoom:false,
       doubleClickZoom:true,
       touchZoom:true
-    }).setView([lat,lon],10);
+    }).setView([lat,lon],8);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:18,
       attribution:'© OpenStreetMap'
     }).addTo(radarMap);
 
-    radarMarker=L.marker([lat,lon],{
-      title:activeLoc.name,
-      icon:L.divIcon({className:'',html:'<div class="radar-pin"></div>',iconSize:[26,26],iconAnchor:[13,26]})
-    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
+    radarMarker=L.circleMarker([lat,lon],{
+      radius:7,
+      color:'#38bdf8',
+      weight:2,
+      fillColor:'#38bdf8',
+      fillOpacity:.35
+    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:false});
   }else{
-    radarMap.setView([lat,lon],10);
+    radarMap.setView([lat,lon],8);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
+      radarMarker.bindTooltip(activeLoc.name,{permanent:false});
     }
   }
 
@@ -1952,12 +1937,12 @@ function updateRadarIframe(){
   if(radarMap && localStorage.getItem('ww_radar_on')==='1'){
     const lat=Number(activeLoc.lat);
     const lon=Number(activeLoc.lon);
-    radarMap.setView([lat,lon],10);
+    radarMap.setView([lat,lon],8);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
+      radarMarker.bindTooltip(activeLoc.name,{permanent:false});
     }
-    setRadarStatus(`Radar · Standort: ${activeLoc.name}`);
+    setRadarStatus(`Radar · ${activeLoc.name}`);
     setTimeout(()=>radarMap.invalidateSize(),120);
   }else{
     initRadarMap();
