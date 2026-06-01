@@ -724,13 +724,23 @@ html,body{
 .leaflet-control-attribution a{color:var(--ac)!important}
 .leaflet-control-zoom a{background:rgba(3,105,161,.92)!important;color:white!important;border-color:rgba(255,255,255,.12)!important}
 
-/* Standort-Pin im Wetterradar */
-.radar-pin-marker{position:relative;width:34px;height:44px;transform:translate(-17px,-44px);pointer-events:none;}
-.radar-pin-head{position:absolute;left:7px;top:0;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9b9b 0,#ff1f1f 42%,#a60000 100%);border:1px solid rgba(255,255,255,.75);box-shadow:0 4px 12px rgba(0,0,0,.65),0 0 18px rgba(255,0,0,.55);}
-.radar-pin-stick{position:absolute;left:16px;top:18px;width:3px;height:25px;background:linear-gradient(#f8fafc,#64748b);border-radius:2px;box-shadow:0 3px 8px rgba(0,0,0,.75);}
-.radar-pin-shadow{position:absolute;left:9px;top:39px;width:18px;height:5px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(1px);}
-.radar-place-label{background:rgba(3,7,18,.88)!important;border:1px solid rgba(56,189,248,.55)!important;color:#fff!important;border-radius:8px!important;font-family:var(--mono)!important;font-size:11px!important;font-weight:700!important;padding:4px 8px!important;box-shadow:0 3px 12px rgba(0,0,0,.45)!important;}
-.radar-place-label:before{display:none!important;}
+
+/* Standort-Pin im Wetterradar: deutlich sichtbar mit Ortsname */
+.radar-pin{
+  width:26px; height:26px; border-radius:50% 50% 50% 0;
+  background:#ef4444; transform:rotate(-45deg);
+  border:3px solid #fff; box-shadow:0 3px 12px rgba(0,0,0,.55);
+}
+.radar-pin::after{
+  content:''; position:absolute; width:8px; height:8px; border-radius:50%;
+  background:#fff; left:6px; top:6px;
+}
+.radar-place-label{
+  background:rgba(3,7,18,.88)!important; color:#fff!important; border:1px solid rgba(255,255,255,.35)!important;
+  border-radius:9px!important; padding:5px 8px!important; font-family:var(--mono)!important;
+  font-size:12px!important; font-weight:700!important; box-shadow:0 2px 10px rgba(0,0,0,.45)!important;
+}
+.radar-place-label::before{display:none!important}
 
 </style>
 
@@ -1029,7 +1039,7 @@ const WDESC_NIGHT={0:'Klar, Nacht', 1:'Überwiegend klar', 2:'Teilweise bewölkt
 // STATE
 // ══════════════════════════════════════════════════════════════════
 // Versions-Check: Bei neuer App-Version localStorage zurücksetzen
-const APP_VERSION = '2026-05-29-v2';
+const APP_VERSION = '2026-06-01-radar-pin-v1';
 if(localStorage.getItem('ww_app_version') !== APP_VERSION){
   localStorage.removeItem('ww_locs_v5');
   localStorage.removeItem('ww_active_v5');
@@ -1733,7 +1743,7 @@ function renderCards(){
 function radarExternalUrl(){
   const lat=Number(activeLoc.lat).toFixed(5);
   const lon=Number(activeLoc.lon).toFixed(5);
-  return `https://www.rainviewer.com/map.html?loc=${lat},${lon},8&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=1&o=83&lm=1`;
+  return `https://www.rainviewer.com/map.html?loc=${lat},${lon},10&oFa=0&oC=1&oU=0&oCS=1&oF=0&oAP=1&c=1&o=83&lm=1`;
 }
 
 function renderRadarCard(){
@@ -1795,7 +1805,7 @@ function setRadarFrame(idx){
   radarLayer=L.tileLayer(url,{opacity:.72,zIndex:10,attribution:'RainViewer'});
   radarLayer.addTo(radarMap);
   const t=f.time ? new Date(f.time*1000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '';
-  setRadarStatus(t ? `Radar ${t} · ${activeLoc.name}` : `Radar · ${activeLoc.name}`);
+  setRadarStatus(t ? `Radar ${t} · Standort: ${activeLoc.name}` : `Radar · Standort: ${activeLoc.name}`);
 }
 
 function startRadarAnimation(){
@@ -1836,18 +1846,14 @@ async function initRadarMap(){
     }).addTo(radarMap);
 
     radarMarker=L.marker([lat,lon],{
-      icon:L.divIcon({
-        className:'',
-        iconSize:[34,44],
-        iconAnchor:[17,44],
-        html:'<div class="radar-pin-marker"><div class="radar-pin-head"></div><div class="radar-pin-stick"></div><div class="radar-pin-shadow"></div></div>'
-      })
-    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
+      title:activeLoc.name,
+      icon:L.divIcon({className:'',html:'<div class="radar-pin"></div>',iconSize:[26,26],iconAnchor:[13,26]})
+    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
   }else{
     radarMap.setView([lat,lon],10);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
+      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
     }
   }
 
@@ -1949,9 +1955,9 @@ function updateRadarIframe(){
     radarMap.setView([lat,lon],10);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
+      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-28],className:'radar-place-label'}).openTooltip();
     }
-    setRadarStatus(`Radar · ${activeLoc.name}`);
+    setRadarStatus(`Radar · Standort: ${activeLoc.name}`);
     setTimeout(()=>radarMap.invalidateSize(),120);
   }else{
     initRadarMap();
