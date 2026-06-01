@@ -724,6 +724,14 @@ html,body{
 .leaflet-control-attribution a{color:var(--ac)!important}
 .leaflet-control-zoom a{background:rgba(3,105,161,.92)!important;color:white!important;border-color:rgba(255,255,255,.12)!important}
 
+/* Standort-Pin im Wetterradar */
+.radar-pin-marker{position:relative;width:34px;height:44px;transform:translate(-17px,-44px);pointer-events:none;}
+.radar-pin-head{position:absolute;left:7px;top:0;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9b9b 0,#ff1f1f 42%,#a60000 100%);border:1px solid rgba(255,255,255,.75);box-shadow:0 4px 12px rgba(0,0,0,.65),0 0 18px rgba(255,0,0,.55);}
+.radar-pin-stick{position:absolute;left:16px;top:18px;width:3px;height:25px;background:linear-gradient(#f8fafc,#64748b);border-radius:2px;box-shadow:0 3px 8px rgba(0,0,0,.75);}
+.radar-pin-shadow{position:absolute;left:9px;top:39px;width:18px;height:5px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(1px);}
+.radar-place-label{background:rgba(3,7,18,.88)!important;border:1px solid rgba(56,189,248,.55)!important;color:#fff!important;border-radius:8px!important;font-family:var(--mono)!important;font-size:11px!important;font-weight:700!important;padding:4px 8px!important;box-shadow:0 3px 12px rgba(0,0,0,.45)!important;}
+.radar-place-label:before{display:none!important;}
+
 </style>
 
 <!-- RainViewer/Leaflet Wetterradar -->
@@ -1820,25 +1828,26 @@ async function initRadarMap(){
       scrollWheelZoom:false,
       doubleClickZoom:true,
       touchZoom:true
-    }).setView([lat,lon],8);
+    }).setView([lat,lon],10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:18,
       attribution:'© OpenStreetMap'
     }).addTo(radarMap);
 
-    radarMarker=L.circleMarker([lat,lon],{
-      radius:7,
-      color:'#38bdf8',
-      weight:2,
-      fillColor:'#38bdf8',
-      fillOpacity:.35
-    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:false});
+    radarMarker=L.marker([lat,lon],{
+      icon:L.divIcon({
+        className:'',
+        iconSize:[34,44],
+        iconAnchor:[17,44],
+        html:'<div class="radar-pin-marker"><div class="radar-pin-head"></div><div class="radar-pin-stick"></div><div class="radar-pin-shadow"></div></div>'
+      })
+    }).addTo(radarMap).bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
   }else{
-    radarMap.setView([lat,lon],8);
+    radarMap.setView([lat,lon],10);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:false});
+      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
     }
   }
 
@@ -1937,10 +1946,10 @@ function updateRadarIframe(){
   if(radarMap && localStorage.getItem('ww_radar_on')==='1'){
     const lat=Number(activeLoc.lat);
     const lon=Number(activeLoc.lon);
-    radarMap.setView([lat,lon],8);
+    radarMap.setView([lat,lon],10);
     if(radarMarker){
       radarMarker.setLatLng([lat,lon]);
-      radarMarker.bindTooltip(activeLoc.name,{permanent:false});
+      radarMarker.bindTooltip(activeLoc.name,{permanent:true,direction:'top',offset:[0,-44],className:'radar-place-label'}).openTooltip();
     }
     setRadarStatus(`Radar · ${activeLoc.name}`);
     setTimeout(()=>radarMap.invalidateSize(),120);
