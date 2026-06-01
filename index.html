@@ -22,8 +22,8 @@ html{filter:brightness(var(--brightness))}
 body {
   color:var(--tx);font-family:var(--sans);min-height:100vh;
   overflow-x:hidden;position:relative;background:var(--bg-hex,#060d1a);
-  display:flex;flex-direction:column;align-items:center;
-  width:100vw;overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+  width:100%;padding:0;margin:0;
 }
 
 /* Scrollbalken im Vollbild/Kiosk schwarz machen – kein grauer Balken mehr */
@@ -58,7 +58,7 @@ html:fullscreen,body:fullscreen{
 /* ── CANVAS BACKGROUND ── */
 #wx-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 #wx-mini{position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;overflow:hidden}
-.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1400px;width:100%;margin:0 auto;box-sizing:border-box}
+.content{position:relative;z-index:1;transition:transform 1.2s ease;max-width:1600px;width:100%;margin:0 auto;box-sizing:border-box;align-self:stretch}
 
 /* ── HEADER ── */
 .header{
@@ -101,7 +101,7 @@ html.rotated{
   height:100vw;
   overflow-x:hidden;
   position:absolute;
-  top:100%;
+  top:100vw;
   left:0;
 }
 
@@ -922,7 +922,6 @@ html,body{
 
 /* =========================================================
    KOPIERBLOCK FINAL – Darstellung sauber grösser
-   Einfügen direkt VOR </style>
    ========================================================= */
 
 /* Desktop/Laptop: Dashboard fast volle Breite, ohne Browser-Zoom und ohne Abschneiden */
@@ -934,30 +933,42 @@ html, body{
 }
 
 body{
-  align-items:center !important;
+  align-items:stretch !important;
+}
+
+/* ── LAYOUT CORE: content immer volle Breite, zentriert bei grossen Screens ── */
+html{
+  margin:0 !important;
+  padding:0 !important;
+  width:100% !important;
 }
 
 .content{
-  width:96vw !important;
-  max-width:1720px !important;
+  width:100% !important;
+  max-width:100% !important;
   min-width:0 !important;
-  margin:0 auto !important;
+  margin:0 !important;
+  padding:0 !important;
   transform:none !important;
   zoom:1 !important;
+  align-self:stretch !important;
+  flex:1 !important;
 }
 
 .grid{
   width:100% !important;
-  max-width:none !important;
+  max-width:1720px !important;
   margin:0 auto !important;
-  padding-left:14px !important;
-  padding-right:14px !important;
+  padding-left:16px !important;
+  padding-right:16px !important;
+  box-sizing:border-box !important;
 }
 
 .header,
 .loc-bar,
 .sb{
   width:100% !important;
+  box-sizing:border-box !important;
 }
 
 .sensor-row{
@@ -983,31 +994,8 @@ body.radar-off #card-radar{
   overflow:hidden !important;
 }
 
-/* Sehr grosse Bildschirme: noch etwas breiter */
-@media (min-width:1800px){
-  .content{
-    width:94vw !important;
-    max-width:1760px !important;
-  }
-}
-
-/* Laptop */
-@media (min-width:1000px) and (max-width:1399px){
-  .content{
-    width:96vw !important;
-    max-width:none !important;
-  }
-}
-
-/* Tablet */
+/* Tablet (600–999px): 1 Spalte */
 @media (min-width:600px) and (max-width:999px){
-  .content{
-    width:100vw !important;
-    max-width:none !important;
-  }
-  .grid{
-    padding:10px !important;
-  }
   .sensor-row{
     grid-template-columns:1fr !important;
   }
@@ -1016,25 +1004,13 @@ body.radar-off #card-radar{
     min-height:120px !important;
     max-height:none !important;
   }
+  .grid{
+    padding:10px !important;
+  }
 }
 
-/* Natel */
+/* Natel (≤599px) */
 @media (max-width:599px){
-  .content{
-    width:100vw !important;
-    max-width:none !important;
-  }
-  .header{
-    position:relative !important;
-    padding:8px !important;
-  }
-  .hdr-right{
-    width:100% !important;
-    justify-content:space-between !important;
-  }
-  #clock{
-    font-size:30px !important;
-  }
   .grid{
     padding:8px !important;
   }
@@ -1055,6 +1031,185 @@ body.radar-off #card-radar{
   }
 }
 
+
+/* =========================================================
+   NATEL FIX – optimiert für Smartphones (≤ 599px)
+   ========================================================= */
+@media (max-width:599px){
+
+  /* Header: Logo links, Uhr + Buttons in einer kompakten Zeile */
+  .header{
+    flex-wrap:nowrap !important;
+    padding:8px 10px !important;
+    gap:6px !important;
+    position:sticky !important;
+    top:0 !important;
+    -webkit-sticky:top !important;
+  }
+
+  /* Logo kleiner */
+  .logo-text{
+    font-size:13px !important;
+    line-height:1.1 !important;
+  }
+
+  /* Rechte Seite: Uhr + Buttons kompakt */
+  .hdr-right{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:5px !important;
+    width:auto !important;
+    flex:1 !important;
+    min-width:0 !important;
+  }
+
+  /* Cloud-Pill verstecken um Platz zu sparen */
+  #conn-pill{
+    display:none !important;
+  }
+
+  /* Uhr kleiner */
+  #clock{
+    font-size:22px !important;
+    letter-spacing:1px !important;
+    white-space:nowrap !important;
+  }
+
+  /* Datum einzeilig & kleiner */
+  #dateline{
+    font-size:9px !important;
+    margin-top:1px !important;
+    white-space:nowrap !important;
+  }
+
+  /* Header-Buttons kleiner */
+  .hdr-btn{
+    font-size:13px !important;
+    padding:5px 7px !important;
+    border-radius:7px !important;
+    flex-shrink:0 !important;
+  }
+
+  /* Drehen-Button auf Mobile ausblenden (macht keinen Sinn) */
+  #rot-btn{
+    display:none !important;
+  }
+
+  /* Location Bar */
+  .loc-bar{
+    padding:8px 10px !important;
+  }
+
+  .loc-chips{
+    gap:5px !important;
+    margin-bottom:6px !important;
+  }
+
+  .lc{
+    font-size:11px !important;
+    padding:5px 9px !important;
+  }
+
+  .loc-row{
+    gap:5px !important;
+  }
+
+  .loc-input{
+    font-size:12px !important;
+    padding:8px 10px !important;
+  }
+
+  .loc-add{
+    font-size:12px !important;
+    padding:8px 10px !important;
+    white-space:nowrap !important;
+  }
+
+  /* Grid: volle Breite, sinnvoller Abstand */
+  .grid{
+    padding:8px !important;
+    gap:8px !important;
+  }
+
+  /* Sensor-Karten: volle Breite, automatische Höhe */
+  .sensor-row{
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+
+  .card,
+  .sensor-row .card{
+    height:auto !important;
+    min-height:auto !important;
+    max-height:none !important;
+    padding:12px 14px !important;
+    border-radius:14px !important;
+  }
+
+  /* Grosse Zahlenwerte auf Mobile angenehm lesbar */
+  .mb{
+    font-size:clamp(32px,9vw,44px) !important;
+    line-height:1 !important;
+  }
+
+  /* Wetter-Icon & Temperatur */
+  .wi{
+    font-size:clamp(44px,12vw,58px) !important;
+  }
+
+  .wt{
+    font-size:clamp(38px,10vw,52px) !important;
+  }
+
+  /* Wetter-Stats: 3 Spalten auf Mobile */
+  .ws{
+    grid-template-columns:repeat(3,1fr) !important;
+    gap:6px !important;
+  }
+
+  /* Stundliche Vorhersage: kleinere Kacheln */
+  .hc{
+    min-width:58px !important;
+    padding:8px 6px !important;
+    border-radius:10px !important;
+  }
+
+  .ht{ font-size:10px !important; }
+  .hi{ font-size:20px !important; margin:4px 0 !important; }
+  .hv{ font-size:13px !important; }
+  .hr{ font-size:9px !important; }
+
+  /* 7-Tage: 4 sichtbar auf Mobile */
+  .fc{
+    grid-template-columns:repeat(4,1fr) !important;
+    gap:4px !important;
+  }
+
+  /* Radar-Karte: vernünftige Höhe auf Mobile */
+  #rv-map,
+  .wo-radar-frame-wrap{
+    height:280px !important;
+  }
+
+  #rv-map iframe{
+    top:-60px !important;
+    height:430px !important;
+  }
+
+  /* Status-Zeile */
+  .sb{
+    padding:7px 10px !important;
+    font-size:9px !important;
+  }
+
+  /* Vollbild-Button auf iOS nutzlos, ausblenden */
+  .fs-btn{
+    display:none !important;
+  }
+}
 </style>
 
 <!-- WetterOnline/Leaflet Wetterradar -->
@@ -2744,8 +2899,8 @@ function applyRotation(){
   } else if(rotateOverride === 'portrait'){
     shouldRotate = false;   // nie drehen
   } else {
-    // Auto: drehen wenn Handy (schmal) und kein Tablet (>768px)
-    shouldRotate = window.innerWidth < 600;
+    // Auto: NIEMALS automatisch drehen – nur auf expliziten Wunsch (landscape)
+    shouldRotate = false;
   }
 
   if(shouldRotate){
@@ -3146,7 +3301,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 // =========================================================
 // KOPIERBLOCK FINAL – Radar ein/aus
-// Einfügen direkt VOR </script>
 // =========================================================
 function updateRadarToggleButton(){
   const btn = document.getElementById('radar-toggle-global');
