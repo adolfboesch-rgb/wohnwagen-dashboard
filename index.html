@@ -715,7 +715,7 @@ html,body{
 
 
 /* Wetterradar: WetterOnline iframe */
-#rv-iframe{width:100%;height:600px;border:none;border-radius:12px;display:block;}
+#rv-iframe{width:100%;height:750px;border:none;border-radius:12px;display:block;}
 
 </style>
 
@@ -1730,7 +1730,7 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;height:${radarOn?'600px':'0px'};transition:height .4s ease;overflow:hidden">
+    <div id="radar-map-wrap" style="border-radius:12px;height:${radarOn?'750px':'0px'};transition:height .4s ease;overflow:hidden">
       <iframe id="rv-iframe"
         src="${radarOn ? radarIframeUrl() : ''}"
         loading="lazy"
@@ -1755,7 +1755,7 @@ function toggleRadar(){
     btn.textContent='○ Einblenden';
     if(frame) frame.src='';
   } else {
-    wrap.style.height='600px'; hint.style.display='none';
+    wrap.style.height='750px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
     if(frame) frame.src=radarIframeUrl();
