@@ -1211,9 +1211,24 @@ body.radar-off #card-radar{
   }
 }
 
-:root{--settings-scale:1;}
-.sp-panel{zoom:var(--settings-scale,1);}
 
+
+
+/* Einstellungsfenster-Grösse: Regler sichtbar ganz oben, nur Panel wird skaliert */
+:root{--settings-scale:1;}
+.sp-panel{
+  zoom:var(--settings-scale,1);
+  max-width:min(580px, calc(96vw / var(--settings-scale,1))) !important;
+  max-height:calc(92vh / var(--settings-scale,1)) !important;
+}
+.settings-scale-sec input[type=range]{height:8px !important;}
+.settings-scale-sec input[type=range]::-webkit-slider-thumb{width:28px !important;height:28px !important;}
+@supports not (zoom: 1){
+  .sp-panel{
+    transform:scale(var(--settings-scale,1));
+    transform-origin:bottom center;
+  }
+}
 </style>
 
 <!-- WetterOnline/Leaflet Wetterradar -->
@@ -1239,6 +1254,20 @@ body.radar-off #card-radar{
       <div class="sp-title">⚙️ Einstellungen</div>
       <button class="sp-x" onclick="closeSPBtn()">✕</button>
     </div>
+
+    <div class="sp-sec settings-scale-sec" style="border:1px solid rgba(56,189,248,.22);background:rgba(56,189,248,.08);border-radius:14px;padding:12px 14px;margin-bottom:18px">
+      <div class="sp-lbl" style="color:var(--ac)">🔍 Einstellungsfenster-Grösse</div>
+      <div class="sl-row">
+        <span class="sl-ico" style="font-size:14px">A</span>
+        <input type="range" id="settings-scale-sl" min="80" max="200" value="100" oninput="setSettingsScale(this.value)">
+        <span class="sl-ico" style="font-size:24px">A</span>
+        <span class="sl-val" id="settings-scale-val">100%</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">
+        80–200 %. Vergrössert nur dieses Einstellungsfenster und wird automatisch gespeichert.
+      </div>
+    </div>
+
 
     <div class="sp-sec">
       <div class="sp-lbl">🎨 Hintergrundfarbe</div>
@@ -1364,19 +1393,6 @@ body.radar-off #card-radar{
       <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">Bild bleibt sichtbar. 0 = kein schwarzer Screensaver.</div>
     </div>
 
-
-    <div class="sp-sec">
-      <div class="sp-lbl">🔍 Einstellungsfenster Grösse</div>
-      <div class="sl-row">
-        <span class="sl-ico">A</span>
-        <input type="range" id="settings-scale-sl" min="80" max="200" value="100" oninput="setSettingsScale(this.value)">
-        <span class="sl-ico" style="font-size:20px">A</span>
-        <span class="sl-val" id="settings-scale-val">100%</span>
-      </div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">
-        Vergrössert nur das Einstellungsfenster. Wird automatisch gespeichert.
-      </div>
-    </div>
 
     <div class="sp-sec">
       <div class="sp-lbl">📋 Kartenreihenfolge</div>
