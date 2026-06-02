@@ -2691,8 +2691,12 @@ function renderSensor(key,p){
     if(card){const bw=card.querySelector('.bat-warn');if(bw)bw.remove();}
   }
   const seen=document.getElementById('seen-'+key);
-  if(seen){seen.textContent=p.online?(p.updated?`Zuletzt: ${p.updated}`:''):'⚠ Gerät offline';
-    seen.style.color=p.online?'var(--mu)':'var(--yel)';}
+  if(seen){
+    // Auch wenn Shelly/Cloud keinen eigenen Zeitstempel liefert, die letzte erfolgreiche Aktualisierung anzeigen.
+    const nowTxt=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    seen.textContent=p.online?`Zuletzt: ${p.updated||nowTxt}`:'⚠ Gerät offline';
+    seen.style.color=p.online?'var(--mu)':'var(--yel)';
+  }
 }
 
 function renderErr(key,msg){
