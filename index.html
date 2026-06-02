@@ -3335,3 +3335,22 @@ setInterval(applyRadarVisibility, 2500);
 </script>
 </body>
 </html>
+<style>
+/* FIX: Wetterradar-Steuerbalken unten sichtbar lassen, sonst Datei unverändert */
+.wo-radar-frame-wrap{
+  height:820px !important;
+  overflow:hidden !important;
+}
+#rv-map iframe{
+  top:-70px !important;
+  left:-10px !important;
+  width:calc(100% + 20px) !important;
+  height:calc(100% + 70px) !important;
+}
+@media (max-width:599px){
+  #rv-map iframe{
+    top:-45px !important;
+    height:calc(100% + 45px) !important;
+  }
+}
+</style>
