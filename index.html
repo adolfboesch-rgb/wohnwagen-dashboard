@@ -586,11 +586,7 @@ body::-webkit-scrollbar-corner, html::-webkit-scrollbar-corner{background:var(--
   }
 
   .sensor-row .mb .u{
-    font-size:.58em !important;
-    color:#b8d4ea !important;
-    font-weight:700 !important;
-    opacity:1 !important;
-    margin-left:4px !important;
+    font-size:.36em !important;
   }
 
   .sensor-row .ml{
@@ -3517,4 +3513,24 @@ document.addEventListener('DOMContentLoaded',()=>{
 .wo-radar-frame-wrap{height:820px !important;overflow:hidden !important;}
 #rv-map iframe{top:-70px !important;left:-10px !important;width:calc(100% + 20px) !important;height:calc(100% + 70px) !important;}
 @media (max-width:599px){#rv-map iframe{top:-45px !important;height:calc(100% + 45px) !important;}}
+
+
+/* =========================================================
+   FINAL SENSOR-ANZEIGE FIX
+   Hauptzahlen etwas kleiner, °C und % gut sichtbar.
+   Sonst bleibt alles unverändert.
+   ========================================================= */
+.sensor-row .mb{
+  font-size:clamp(30px,4vw,48px) !important;
+  line-height:.95 !important;
+}
+.sensor-row .mb .u{
+  font-size:.36em !important;
+  color:#8fb1c9 !important;
+  font-weight:700 !important;
+  opacity:1 !important;
+  margin-left:2px !important;
+  letter-spacing:0 !important;
+  vertical-align:baseline !important;
+}
 </style>
