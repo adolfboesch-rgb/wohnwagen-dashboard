@@ -715,7 +715,7 @@ html,body{
 
 
 /* Wetterradar: WetterOnline + Leaflet – übernimmt den gewählten Standort */
-#rv-map{width:100%;height:750px;border-radius:12px;background:#08111f;z-index:1}
+#rv-map{width:100%;height:820px;border-radius:12px;background:#08111f;z-index:1}
 #rv-status{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(3,7,18,.82);border:1px solid var(--b2);border-radius:8px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--tx)}
 #rv-fallback{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;text-align:center;background:rgba(8,17,31,.88);font-family:var(--mono);font-size:12px;color:var(--mu);line-height:1.5}
 #rv-fallback a,.radar-open{color:var(--ac);text-decoration:none;font-family:var(--mono);font-size:10px;margin-left:6px;opacity:.9}
@@ -728,7 +728,7 @@ html,body{
 /* Wetterradar per WetterOnline-Embed: stabil, kein WetterOnline/Leaflet Zoom-Level-Fehler */
 #rv-map{
   width:100%;
-  height:750px;
+  height:820px;
   border-radius:12px;
   background:#08111f;
   overflow:hidden;
@@ -790,7 +790,7 @@ html,body{
 /* Wetterradar Optik-Fix: farbiger, ruhiger, Pin sauberer */
 #rv-map{
   width:100%;
-  height:750px;
+  height:820px;
   border-radius:12px;
   background:#08111f;
   overflow:hidden;
@@ -862,7 +862,7 @@ html,body{
 /* WetterOnline Radar eingebettet */
 #rv-map{
   width:100%;
-  height:750px;
+  height:820px;
   border-radius:12px;
   background:#08111f;
   overflow:hidden;
@@ -895,7 +895,7 @@ html,body{
   position:relative;
   overflow:hidden;
   width:100%;
-  height:750px;
+  height:820px;
 }
 #rv-map iframe{
   position:absolute;
@@ -2330,7 +2330,7 @@ function toggleRadar(){
     }
     clearInterval(radarAnimTimer);
   } else {
-    if(wrap) wrap.style.height='750px';
+    if(wrap) wrap.style.height='820px';
     if(hint) hint.style.display='none';
     if(btn){
       btn.style.background='#0369a1';
