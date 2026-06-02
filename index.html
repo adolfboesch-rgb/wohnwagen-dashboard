@@ -3354,3 +3354,113 @@ setInterval(applyRadarVisibility, 2500);
   }
 }
 </style>
+
+
+<style>
+/* =========================================================
+   AUTO-GRÖSSER RESPONSIVE FIX
+   Macht das Dashboard je nach Bildschirm automatisch etwas grösser,
+   ohne Inhalt abzuschneiden. Wetterradar-Fix bleibt erhalten.
+   ========================================================= */
+:root{--auto-ui-scale:1;}
+@media (min-width:768px){:root{--auto-ui-scale:1.04;}}
+@media (min-width:1200px) and (min-height:700px){:root{--auto-ui-scale:1.09;}}
+@media (min-width:1600px) and (min-height:800px){:root{--auto-ui-scale:1.15;}}
+@media (min-width:2100px) and (min-height:1000px){:root{--auto-ui-scale:1.22;}}
+
+.content{
+  width:100% !important;
+  max-width:100% !important;
+}
+.grid{
+  width:100% !important;
+  max-width:min(97vw,2300px) !important;
+  padding:clamp(10px,1.7vmin,28px) clamp(12px,2.2vw,34px) !important;
+  gap:clamp(10px,1.5vmin,22px) !important;
+}
+.header,.loc-bar,.sb{
+  max-width:100vw !important;
+}
+
+@media (min-width:768px){
+  .header{padding:clamp(8px,1.2vmin,18px) clamp(14px,1.8vw,28px) !important;}
+  .logo-text{font-size:calc(clamp(17px,2.2vw,28px) * var(--auto-ui-scale)) !important;}
+  #clock{font-size:calc(clamp(32px,4.8vw,68px) * var(--auto-ui-scale)) !important;}
+  #dateline{font-size:calc(clamp(12px,1.35vw,22px) * var(--auto-ui-scale)) !important;}
+  .loc-bar{padding:clamp(7px,1vmin,14px) clamp(12px,1.7vw,26px) !important;}
+  .lc,.loc-input,.loc-add{font-size:calc(11px * var(--auto-ui-scale)) !important;}
+
+  .sensor-row{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:clamp(12px,1.4vw,24px) !important;
+  }
+  .sensor-row .card{
+    height:clamp(150px,17vh,235px) !important;
+    min-height:clamp(150px,17vh,235px) !important;
+    max-height:none !important;
+    padding:clamp(12px,1.3vmin,22px) clamp(14px,1.5vw,26px) !important;
+  }
+  .sensor-row .ct{font-size:calc(9px * var(--auto-ui-scale)) !important;}
+  .sensor-row .mb{font-size:calc(clamp(34px,4.7vw,70px) * var(--auto-ui-scale)) !important;line-height:.95 !important;}
+  .sensor-row .ml,.sensor-row .ls{font-size:calc(8px * var(--auto-ui-scale)) !important;}
+  .sensor-row .dv{height:clamp(34px,5vh,56px) !important;}
+  .sensor-row .br{margin-top:clamp(8px,1.2vmin,16px) !important;padding-top:clamp(6px,1vmin,12px) !important;}
+
+  #card-wetter.card{
+    padding:clamp(12px,1.35vmin,24px) clamp(14px,1.6vw,28px) !important;
+    border-radius:clamp(16px,1.5vmin,24px) !important;
+  }
+  #card-wetter .ch{margin-bottom:clamp(6px,1vmin,14px) !important;}
+  .wi{font-size:calc(clamp(42px,5.4vw,82px) * var(--auto-ui-scale)) !important;}
+  .wt{font-size:calc(clamp(42px,6vw,88px) * var(--auto-ui-scale)) !important;line-height:.92 !important;}
+  .wd{font-size:calc(11px * var(--auto-ui-scale)) !important;}
+  .ws{gap:clamp(6px,0.9vw,14px) !important;margin-bottom:clamp(7px,1vmin,14px) !important;}
+  .wst{padding:clamp(6px,1vmin,14px) clamp(5px,0.8vw,12px) !important;}
+  .wv{font-size:calc(clamp(12px,1.45vw,22px) * var(--auto-ui-scale)) !important;}
+  .wl{font-size:calc(8px * var(--auto-ui-scale)) !important;}
+  .sec-lbl{font-size:calc(10px * var(--auto-ui-scale)) !important;margin-bottom:clamp(5px,0.8vmin,10px) !important;}
+
+  .hourly{
+    gap:clamp(8px,1vw,18px) !important;
+    margin-bottom:clamp(7px,1.1vmin,16px) !important;
+    padding-bottom:clamp(4px,0.8vmin,10px) !important;
+  }
+  .hc{
+    min-width:clamp(82px,8vw,150px) !important;
+    min-height:clamp(90px,12vh,150px) !important;
+    padding:clamp(7px,1vmin,14px) clamp(8px,1vw,16px) !important;
+  }
+  .ht{font-size:calc(10px * var(--auto-ui-scale)) !important;}
+  .hi{font-size:calc(clamp(24px,3vw,42px) * var(--auto-ui-scale)) !important;}
+  .hv{font-size:calc(clamp(15px,1.8vw,28px) * var(--auto-ui-scale)) !important;}
+  .hr{font-size:calc(9px * var(--auto-ui-scale)) !important;}
+
+  .fc{gap:clamp(6px,0.8vw,14px) !important;grid-template-columns:repeat(7,minmax(0,1fr)) !important;}
+  .fcd{
+    min-height:clamp(66px,9vh,118px) !important;
+    padding:clamp(6px,1vmin,14px) clamp(3px,0.6vw,10px) !important;
+  }
+  .fdn{font-size:calc(8px * var(--auto-ui-scale)) !important;}
+  .fdi{font-size:calc(clamp(18px,2.1vw,32px) * var(--auto-ui-scale)) !important;}
+  .fdh{font-size:calc(clamp(11px,1.25vw,20px) * var(--auto-ui-scale)) !important;}
+  .fdl,.fdr{font-size:calc(8px * var(--auto-ui-scale)) !important;}
+  .sb{font-size:calc(8px * var(--auto-ui-scale)) !important;padding:clamp(5px,0.9vmin,12px) clamp(12px,1.6vw,26px) !important;}
+}
+
+/* Smartphone: volle Breite besser ausnutzen, aber nicht überladen */
+@media (max-width:599px){
+  .grid{max-width:100vw !important;padding:10px !important;gap:10px !important;}
+  .card,.sensor-row .card{padding:14px !important;}
+  .mb{font-size:clamp(34px,10vw,48px) !important;}
+  .wi{font-size:clamp(48px,13vw,64px) !important;}
+  .wt{font-size:clamp(42px,11vw,58px) !important;}
+  .wst{padding:8px 6px !important;}
+  .hc{min-width:64px !important;min-height:86px !important;}
+  .fcd{min-height:64px !important;}
+}
+
+/* Radar-Steuerbalken weiterhin sichtbar lassen */
+.wo-radar-frame-wrap{height:820px !important;overflow:hidden !important;}
+#rv-map iframe{top:-70px !important;left:-10px !important;width:calc(100% + 20px) !important;height:calc(100% + 70px) !important;}
+@media (max-width:599px){#rv-map iframe{top:-45px !important;height:calc(100% + 45px) !important;}}
+</style>
