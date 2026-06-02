@@ -714,12 +714,15 @@ html,body{
 }
 
 
-/* Wetterradar: WetterOnline iframe */
-#rv-iframe{width:100%;height:750px;border:none;border-radius:12px;display:block;}
+/* Wetterradar: Leaflet/RainViewer */
+#rv-map{width:100%;height:750px;border-radius:12px;background:#08111f;}
+#rv-status{position:absolute;left:10px;bottom:10px;z-index:600;background:rgba(6,13,26,.82);border:1px solid var(--b2);border-radius:9px;padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--tx);backdrop-filter:blur(8px)}
 
 </style>
 
-<!-- WetterOnline iframe -->
+<!-- Leaflet Karte für Wetterradar -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 </head>
 <body>
@@ -1706,14 +1709,11 @@ function renderCards(){
     } else { sensorBuf.push(k); }
   }
   if(sensorBuf.length) html+=`<div class="sensor-row">${sensorBuf.map(renderSensorCard).join('')}</div>`;
+  if(radarMap){try{radarMap.remove();}catch(e){} radarMap=null; radarLayer=null;}
   container.innerHTML=html;
+  if(localStorage.getItem('ww_radar_on')==='1') setTimeout(initRadarMap,300);
 }
 
-function radarIframeUrl(){
-  const lat=Number(activeLoc.lat).toFixed(4);
-  const lon=Number(activeLoc.lon).toFixed(4);
-  return `https://www.wetteronline.ch/wetterradar?lat=${lat}&lon=${lon}`;
-}
 function renderRadarCard(){
   const radarOn = localStorage.getItem('ww_radar_on')==='1';
   return`<div class="card" id="card-radar" style="position:relative;overflow:hidden;padding:12px">
@@ -1721,7 +1721,7 @@ function renderRadarCard(){
     <div class="ch" style="margin-bottom:8px">
       <div style="font-size:14px">🛰️</div>
       <div class="ct" id="radar-title">Wetterradar · ${activeLoc.name}</div>
-      <div class="tag">WetterOnline</div>
+      <div class="tag">RainViewer</div>
       <button id="radar-toggle-btn" onclick="toggleRadar()"
         style="margin-left:auto;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;
         font-family:var(--mono);font-size:11px;font-weight:700;
@@ -1730,37 +1730,69 @@ function renderRadarCard(){
         ${radarOn?'● Ausblenden':'○ Einblenden'}
       </button>
     </div>
-    <div id="radar-map-wrap" style="border-radius:12px;height:${radarOn?'750px':'0px'};transition:height .4s ease;overflow:hidden">
-      <iframe id="rv-iframe"
-        src="${radarOn ? radarIframeUrl() : ''}"
-        loading="lazy"
-        allowfullscreen>
-      </iframe>
+    <div id="radar-map-wrap" style="border-radius:12px;height:${radarOn?'750px':'0px'};transition:height .4s ease;position:relative">
+      <div id="rv-map"></div>
+      <div id="rv-status">Radar lädt…</div>
     </div>
     <div id="radar-off-hint" style="text-align:center;padding:10px 0;color:var(--mu);font-size:12px;font-family:var(--mono);display:${radarOn?'none':'block'}">
       Radar ausgeblendet · Tippe Einblenden
     </div>
   </div>`;}
 
+let radarMap=null, radarLayer=null;
+
 function toggleRadar(){
   const on = localStorage.getItem('ww_radar_on')==='1';
   localStorage.setItem('ww_radar_on', on?'0':'1');
-  const wrap =document.getElementById('radar-map-wrap');
-  const hint =document.getElementById('radar-off-hint');
-  const btn  =document.getElementById('radar-toggle-btn');
-  const frame=document.getElementById('rv-iframe');
+  const wrap=document.getElementById('radar-map-wrap');
+  const hint=document.getElementById('radar-off-hint');
+  const btn =document.getElementById('radar-toggle-btn');
   if(on){
     wrap.style.height='0px'; hint.style.display='block';
     btn.style.background='rgba(255,255,255,0.08)'; btn.style.color='var(--mu)';
     btn.textContent='○ Einblenden';
-    if(frame) frame.src='';
   } else {
     wrap.style.height='750px'; hint.style.display='none';
     btn.style.background='#0369a1'; btn.style.color='#fff';
     btn.textContent='● Ausblenden';
-    if(frame) frame.src=radarIframeUrl();
+    setTimeout(initRadarMap, 500);
   }
   setTimeout(autoScale, 500);
+}
+
+async function initRadarMap(){
+  if(localStorage.getItem('ww_radar_on')!=='1') return;
+  const mapEl=document.getElementById('rv-map');
+  const status=document.getElementById('rv-status');
+  if(!mapEl) return;
+  const lat=Number(activeLoc.lat), lon=Number(activeLoc.lon);
+  if(!radarMap){
+    // Karte OHNE autoScale-Transform initialisieren: echte px-Breite via getBoundingClientRect
+    const w=Math.round(mapEl.getBoundingClientRect().width)||360;
+    mapEl.style.width=w+'px';
+    radarMap=L.map('rv-map',{zoomControl:true,scrollWheelZoom:false,attributionControl:true})
+      .setView([lat,lon],9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OSM'}).addTo(radarMap);
+    L.circleMarker([lat,lon],{radius:7,weight:2,color:'#38bdf8',fillColor:'#38bdf8',fillOpacity:.9}).addTo(radarMap);
+    // Breite zurück auf 100%, dann invalidateSize
+    setTimeout(()=>{mapEl.style.width='100%'; radarMap.invalidateSize({animate:false});},100);
+  } else {
+    radarMap.setView([lat,lon],9);
+  }
+  try{
+    const res=await fetch('https://api.rainviewer.com/public/weather-maps.json',{cache:'no-store'});
+    const data=await res.json();
+    const frames=(data.radar&&data.radar.past)||[];
+    if(!frames.length) throw new Error('keine Frames');
+    const frame=frames[frames.length-1];
+    const url=`${data.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`;
+    if(radarLayer) radarMap.removeLayer(radarLayer);
+    radarLayer=L.tileLayer(url,{tileSize:256,opacity:.75,zIndex:10,maxZoom:14}).addTo(radarMap);
+    const t=new Date(frame.time*1000).toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+    if(status) status.textContent=`Radar ${t} · ${activeLoc.name}`;
+  }catch(e){
+    if(status) status.textContent='Radar momentan nicht verfügbar';
+  }
 }
 
 function renderSensorCard(key){
@@ -1807,8 +1839,10 @@ function renderChips(){
 function updateRadarIframe(){
   const rt=document.getElementById('radar-title');
   if(rt) rt.textContent=`Wetterradar · ${activeLoc.name}`;
-  const frame=document.getElementById('rv-iframe');
-  if(frame && localStorage.getItem('ww_radar_on')==='1') frame.src=radarIframeUrl();
+  if(radarMap && localStorage.getItem('ww_radar_on')==='1'){
+    radarMap.setView([activeLoc.lat,activeLoc.lon],9);
+    initRadarMap();
+  }
 }
 
 function selectLoc(i){
@@ -2503,6 +2537,7 @@ function autoScale(){
   document.documentElement.style.marginRight='auto';
   // Body ebenfalls zentrieren
   document.body.style.minHeight=(100/scale).toFixed(2)+'vh';
+  if(radarMap) requestAnimationFrame(()=>radarMap.invalidateSize({animate:false}));
 }
 autoScale();
 window.addEventListener('resize',autoScale);
