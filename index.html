@@ -1210,6 +1210,10 @@ body.radar-off #card-radar{
     display:none !important;
   }
 }
+
+:root{--settings-scale:1;}
+.sp-panel{zoom:var(--settings-scale,1);}
+
 </style>
 
 <!-- WetterOnline/Leaflet Wetterradar -->
@@ -1358,6 +1362,20 @@ body.radar-off #card-radar{
         <span class="sl-val" id="ss-val">5 Min</span>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">Bild bleibt sichtbar. 0 = kein schwarzer Screensaver.</div>
+    </div>
+
+
+    <div class="sp-sec">
+      <div class="sp-lbl">🔍 Einstellungsfenster Grösse</div>
+      <div class="sl-row">
+        <span class="sl-ico">A</span>
+        <input type="range" id="settings-scale-sl" min="80" max="200" value="100" oninput="setSettingsScale(this.value)">
+        <span class="sl-ico" style="font-size:20px">A</span>
+        <span class="sl-val" id="settings-scale-val">100%</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mu);margin-top:4px">
+        Vergrössert nur das Einstellungsfenster. Wird automatisch gespeichert.
+      </div>
     </div>
 
     <div class="sp-sec">
@@ -3332,6 +3350,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 setInterval(applyRadarVisibility, 2500);
 
+
+function setSettingsScale(v){
+  const scale=Math.max(80,Math.min(200,parseInt(v||100,10)))/100;
+  document.documentElement.style.setProperty('--settings-scale',scale);
+  const el=document.getElementById('settings-scale-val');
+  if(el) el.textContent=Math.round(scale*100)+'%';
+  localStorage.setItem('settingsScale',Math.round(scale*100));
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const saved=parseInt(localStorage.getItem('settingsScale')||'100',10);
+  document.documentElement.style.setProperty('--settings-scale',saved/100);
+  const sl=document.getElementById('settings-scale-sl');
+  const va=document.getElementById('settings-scale-val');
+  if(sl) sl.value=saved;
+  if(va) va.textContent=saved+'%';
+});
 </script>
 </body>
 </html>
