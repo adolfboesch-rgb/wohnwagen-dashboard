@@ -304,7 +304,7 @@ input[type=range]::-webkit-slider-thumb{width:22px;height:22px;border-radius:50%
 .hv{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--tx)}
 .hr{font-size:10px;color:var(--rain);font-family:var(--mono);margin-top:2px}
 .fc{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-@media(max-width:450px){.fc{grid-template-columns:repeat(4,1fr)}.fcd:nth-child(n+5){display:none}}
+@media(max-width:450px){.fc{grid-template-columns:repeat(4,1fr)}}
 .fcd{background:rgba(255,255,255,.04);border:1px solid var(--b2);border-radius:10px;padding:7px 3px;text-align:center}
 .fcd.today{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.08)}
 .fdn{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu)}
@@ -1418,7 +1418,7 @@ const CLOUD = 'shelly-71-eu.shelly.cloud';
 // Geräte: BLU HT (Bluetooth, via Cloud) – IDs geprüft am 19.05.2026
 const DEVICES = {
   blu1:   { id:'543204576ac4', ids:['543204576ac4','92573797935812','XB137192906687768'], localIp:'10.10.20.76',  label:'Vorbau Wohnwagen Raumtemperatur', icon:'❄️', acc:'ap', tag:'H&T G3' },
-  blu2:   { id:'d885ac12e7f0', ids:['d885ac12e7f0','238068629170160'], localIp:'10.10.20.239', label:'Schlafzimmer Raumtemperatur', icon:'🛏️', acc:'ap', tag:'H&T G3' },
+  blu3:   { id:'d885ac12e7f0', ids:['d885ac12e7f0','238068629170160'], localIp:'10.10.20.239', label:'Schlafzimmer Raumtemperatur',  icon:'🛏️', acc:'ap', tag:'H&T G3' },
   aussen: { id:'XB137192907148074', ids:['XB137192907148074'], localIp:null, label:'Aussentemperatur',                icon:'🌿', acc:'as', tag:'BLU HT' },
   wetter: { id:'wetter', localIp:null, label:'Wetter', icon:'🌍', acc:'as', tag:'' },
   radar:  { id:'radar',  localIp:null, label:'Wetterradar', icon:'🛰️', acc:'as', tag:'' },
@@ -1516,7 +1516,7 @@ if(localStorage.getItem('ww_app_version') !== APP_VERSION){
 
 let savedLocs    = JSON.parse(localStorage.getItem('ww_locs_v5')||'null') || DEFAULT_LOCS;
 let activeLoc    = JSON.parse(localStorage.getItem('ww_active_v5')||'null') || savedLocs[0];
-let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu2','aussen','wetter','radar'];
+let cardOrder    = JSON.parse(localStorage.getItem('ww_order_v5')||'null') || ['blu1','blu3','aussen','wetter','radar'];
 let bgColor      = JSON.parse(localStorage.getItem('ww_color_v5')||'null') || COLOR_PRESETS[0];
 let brightness   = parseInt(localStorage.getItem('ww_bright_v5')||'100');
 let refreshMins  = parseInt(localStorage.getItem('ww_refresh_v5')||'5');
